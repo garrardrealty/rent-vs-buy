@@ -1,147 +1,84 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Rent vs Buy & Sell Calculator | Chris Garrard Realty</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            padding: 20px;
-            max-width: 900px;
-            margin: auto;
-            background-color: #f7f7f7;
-            color: #333;
-        }
-        h1 {
-            text-align: center;
-            color: #2c3e50;
-        }
-        label {
-            display: block;
-            margin-top: 15px;
-            font-weight: bold;
-        }
-        input {
-            width: 100%;
-            padding: 8px;
-            margin-top: 5px;
-            border-radius: 4px;
-            border: 1px solid #ccc;
-        }
-        .results {
-            margin-top: 30px;
-            padding: 15px;
-            background: #fff;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-        }
-        .results strong {
-            color: #2980b9;
-        }
-        footer {
-            margin-top: 40px;
-            text-align: center;
-            font-size: 14px;
-            color: #777;
-        }
-    </style>
-</head>
-<body>
+<script>
+    function formatNumber(num) {
+        return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
 
-    <h1>Rent vs Buy & Sell in 5 Years</h1>
-    <p style="text-align:center;">Which Puts More Money in Your Pocket?</p>
+    function calculate() {
+        const getValue = (id) => parseFloat(document.getElementById(id).value) || 0;
 
-    <label>Home Purchase Price ($):</label>
-    <input type="number" id="homePrice" value="300000">
+        const homePrice = getValue('homePrice');
+        const downPaymentPercent = getValue('downPayment');
+        const interestRateMonthly = getValue('interestRate') / 100 / 12;
+        const loanTermMonths = getValue('loanTerm') * 12;
+        const growthRate = getValue('growthRate') / 100;
+        let monthlyRent = getValue('monthlyRent');
+        const rentIncrease = getValue('rentIncrease') / 100;
+        const years = getValue('years');
+        const sellingCostPercent = 0.07; // 7% selling costs
+        const annualStockReturn = 0.07;
+        const stockReturnMonthly = Math.pow(1 + annualStockReturn, 1 / 12) - 1;
 
-    <label>Down Payment (%):</label>
-    <input type="number" id="downPayment" value="5">
+        const downPayment = homePrice * (downPaymentPercent / 100);
+        const loanAmount = homePrice - downPayment;
+        const monthlyPrincipalInterest = loanAmount * interestRateMonthly / (1 - Math.pow(1 + interestRateMonthly, -loanTermMonths));
 
-    <label>Loan Interest Rate (%):</label>
-    <input type="number" id="interestRate" value="6.5">
+        let totalRentCost = 0;
+        let homeValue = homePrice;
+        let remainingLoan = loanAmount;
 
-    <label>Loan Term (years):</label>
-    <input type="number" id="loanTerm" value="30">
+        for (let i = 1; i <= years; i++) {
+            homeValue *= (1 + growthRate);
+            totalRentCost += monthlyRent * 12;
+            monthlyRent *= (1 + rentIncrease);
 
-    <label>Annual Property Value Growth (%):</label>
-    <input type="number" id="growthRate" value="2">
-
-    <label>Monthly Rent ($):</label>
-    <input type="number" id="monthlyRent" value="1600">
-
-    <label>Annual Rent Increase (%):</label>
-    <input type="number" id="rentIncrease" value="3">
-
-    <label>Years to Compare:</label>
-    <input type="number" id="years" value="5">
-
-    <div class="results" id="results"></div>
-
-    <footer>
-        Chris Garrard | Veteran-Owned Real Estate
-    </footer>
-
-    <script>
-        function formatNumber(num) {
-            return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            // Loan amortization approximation for 1 year
+            remainingLoan = remainingLoan * Math.pow(1 + interestRateMonthly, 12) - (monthlyPrincipalInterest * ((Math.pow(1 + interestRateMonthly, 12) - 1) / interestRateMonthly));
         }
 
-        function calculate() {
-            const getValue = (id) => parseFloat(document.getElementById(id).value) || 0;
+        const sellingCosts = homeValue * sellingCostPercent;
+        const cashAfterSale = homeValue - remainingLoan - sellingCosts;
 
-            const homePrice = getValue('homePrice');
-            const downPaymentPercent = getValue('downPayment');
-            const interestRateMonthly = getValue('interestRate') / 100 / 12;
-            const loanTermMonths = getValue('loanTerm') * 12;
-            const growthRate = getValue('growthRate') / 100;
-            let monthlyRent = getValue('monthlyRent');
-            const rentIncrease = getValue('rentIncrease') / 100;
-            const years = getValue('years');
-            const sellingCostPercent = 0.07; // 7% selling costs
+        // Monthly rent vs mortgage difference
+        const totalMonthlyHousingCost = monthlyPrincipalInterest; // Assuming taxes & insurance are excluded
+        const averageMonthlyRent = totalRentCost / (years * 12);
+        const monthlyDifference = totalMonthlyHousingCost - averageMonthlyRent;
 
-            const downPayment = homePrice * (downPaymentPercent / 100);
-            const loanAmount = homePrice - downPayment;
-            const monthlyPrincipalInterest = loanAmount * interestRateMonthly / (1 - Math.pow(1 + interestRateMonthly, -loanTermMonths));
-
-            let totalRentCost = 0;
-            let homeValue = homePrice;
-            let remainingLoan = loanAmount;
-
-            for (let i = 1; i <= years; i++) {
-                homeValue *= (1 + growthRate);
-                totalRentCost += monthlyRent * 12;
-                monthlyRent *= (1 + rentIncrease);
-
-                // Loan amortization approximation for 1 year
-                remainingLoan = remainingLoan * Math.pow(1 + interestRateMonthly, 12) - (monthlyPrincipalInterest * ((Math.pow(1 + interestRateMonthly, 12) - 1) / interestRateMonthly));
+        // Stock investment simulation if renting is cheaper
+        let futureStockValue = 0;
+        if (monthlyDifference > 0) {
+            for (let m = 0; m < years * 12; m++) {
+                futureStockValue = (futureStockValue + monthlyDifference) * (1 + stockReturnMonthly);
             }
-
-            const sellingCosts = homeValue * sellingCostPercent;
-            const cashAfterSale = homeValue - remainingLoan - sellingCosts;
-
-            document.getElementById('results').innerHTML = `
-                <strong>Renting Total Cost Over ${years} Years:</strong> $${formatNumber(totalRentCost)}<br><br>
-
-                <strong>Estimated Home Value After ${years} Years:</strong> $${formatNumber(homeValue)}<br>
-                <strong>Remaining Loan Balance:</strong> $${formatNumber(remainingLoan)}<br>
-                <strong>Estimated Selling Costs (7%):</strong> $${formatNumber(sellingCosts)}<br>
-                <strong>Cash You’d Pocket After Selling:</strong> <strong>$${formatNumber(cashAfterSale)}</strong><br><br>
-
-                <strong>Final Comparison:</strong><br>
-                Renting costs you $${formatNumber(totalRentCost)} with $0 return.<br>
-                Buying puts <strong>$${formatNumber(cashAfterSale)}</strong> in your pocket after ${years} years.<br><br>
-
-                <strong>${cashAfterSale > totalRentCost ? 'Buying is better!' : 'Renting is cheaper in this time frame.'}</strong>
-            `;
         }
 
-        document.querySelectorAll('input').forEach(el => {
-            el.addEventListener('input', calculate);
-        });
-        window.onload = calculate;
-    </script>
+        const resultMessage = cashAfterSale > totalRentCost
+            ? 'Buying is better in this time frame!'
+            : 'Renting is cheaper in this time frame, but buying builds equity!';
 
-</body>
-</html>
+        document.getElementById('results').innerHTML = `
+            <strong>Renting Total Cost Over ${years} Years:</strong> $${formatNumber(totalRentCost)}<br><br>
+
+            <strong>Estimated Home Value After ${years} Years:</strong> $${formatNumber(homeValue)}<br>
+            <strong>Remaining Loan Balance:</strong> $${formatNumber(remainingLoan)}<br>
+            <strong>Estimated Selling Costs (7%):</strong> $${formatNumber(sellingCosts)}<br>
+            <strong>Cash You’d Pocket After Selling:</strong> <strong>$${formatNumber(cashAfterSale)}</strong><br><br>
+
+            <strong>Final Comparison:</strong><br>
+            Renting costs you $${formatNumber(totalRentCost)} with $0 return.<br>
+            Buying puts <strong>$${formatNumber(cashAfterSale)}</strong> in your pocket after ${years} years.<br><br>
+
+            ${monthlyDifference > 0
+                ? `If you rented and invested $${formatNumber(monthlyDifference)} per month at 7% annual return, you'd have about <strong>$${formatNumber(futureStockValue)}</strong> after ${years} years.<br><br>`
+                : ''}
+
+            <strong>${resultMessage}</strong>
+        `;
+    }
+
+    document.querySelectorAll('input').forEach(el => {
+        el.addEventListener('input', calculate);
+    });
+    window.onload = calculate;
+</script>
 
 
