@@ -70,7 +70,7 @@
     <h1>Rent vs Buy Trend Calculator</h1>
 
     <div class="form-section">
-        <!-- Same inputs as before -->
+        <!-- Input Fields -->
         <div class="form-group">
             <label>Home Price ($)</label>
             <input type="number" id="homePrice" value="300000">
@@ -111,6 +111,10 @@
             <label>Years</label>
             <input type="number" id="years" value="10">
         </div>
+        <div class="form-group">
+            <label>Investment Return (%/yr)</label>
+            <input type="number" id="investmentReturn" value="7">
+        </div>
     </div>
 
     <canvas id="comparisonChart" width="100%"></canvas>
@@ -118,7 +122,7 @@
     <div class="summary" id="summary"></div>
 
     <footer>
-        Blue = Buy Cost | Orange = Rent Cost<br>
+        Blue = Buy Net Cost | Orange = Rent Cost | Green = Investment Growth<br>
         Chris Garrard | Veteran-Owned Real Estate
     </footer>
 
@@ -142,6 +146,8 @@
             let monthlyRent = getValue('monthlyRent');
             const rentIncrease = getValue('rentIncrease') / 100;
             const years = getValue('years');
+            const annualStockReturn = getValue('investmentReturn') / 100;
+            const stockReturnMonthly = Math.pow(1 + annualStockReturn, 1 / 12) - 1;
 
             const downPayment = homePrice * (downPaymentPercent / 100);
             const loanAmount = homePrice - downPayment;
@@ -154,9 +160,11 @@
             let rentPaid = 0;
             let homeValue = homePrice;
             let remainingLoan = loanAmount;
+            let futureStockValue = 0;
 
             let rentData = [];
             let buyData = [];
+            let investData = [];
             let labels = [];
 
             let breakevenYear = null;
@@ -173,8 +181,16 @@
 
                 const buyNetCost = downPayment + (totalMonthlyMortgage * i * 12) - cashAfterSale;
 
+                const monthlyDifference = totalMonthlyMortgage - (rentPaid / i / 12);
+                if (monthlyDifference > 0) {
+                    for (let m = 0; m < 12; m++) {
+                        futureStockValue = (futureStockValue + monthlyDifference) * (1 + stockReturnMonthly);
+                    }
+                }
+
                 rentData.push(rentPaid);
                 buyData.push(buyNetCost);
+                investData.push(futureStockValue);
                 labels.push(i + ' yr');
 
                 if (!breakevenYear && buyNetCost < rentPaid) {
@@ -182,24 +198,28 @@
                 }
             }
 
-            updateChart(labels, rentData, buyData);
+            updateChart(labels, rentData, buyData, investData);
 
-            const lastYear = years;
             const rentFinal = rentData[years - 1];
             const buyFinal = buyData[years - 1];
             const diff = Math.abs(rentFinal - buyFinal);
             const betterOption = (rentFinal < buyFinal) ? "Renting" : "Buying";
 
             document.getElementById('summary').innerHTML = `
-                <strong>Year ${lastYear} Summary:</strong><br>
+                <strong>Year ${years} Summary:</strong><br>
+                Monthly Mortgage (incl. taxes & insurance): $${formatNumber(totalMonthlyMortgage)}<br>
+                Monthly Rent: $${formatNumber(monthlyRent / Math.pow(1 + rentIncrease, years))}<br><br>
+
                 Total Rent Cost: $${formatNumber(rentFinal)}<br>
                 Total Buy Net Cost: $${formatNumber(buyFinal)}<br>
                 Difference: $${formatNumber(diff)} (${betterOption} is better)<br><br>
+
+                If you invested the monthly difference, you'd have: <strong>$${formatNumber(futureStockValue)}</strong><br>
                 ${breakevenYear ? `<strong>Breakeven:</strong> After ${breakevenYear} years, buying becomes cheaper.` : `<strong>No breakeven in ${years} years</strong>`}
             `;
         }
 
-        function updateChart(labels, rentData, buyData) {
+        function updateChart(labels, rentData, buyData, investData) {
             const ctx = document.getElementById('comparisonChart').getContext('2d');
             if (chart) chart.destroy();
 
@@ -219,6 +239,13 @@
                             label: 'Buy Net Cost',
                             data: buyData,
                             borderColor: '#2980b9',
+                            fill: false,
+                            tension: 0.3
+                        },
+                        {
+                            label: 'Investment Growth',
+                            data: investData,
+                            borderColor: '#27ae60',
                             fill: false,
                             tension: 0.3
                         }
@@ -249,6 +276,8 @@
 
 </body>
 </html>
+
+
 
 
 
