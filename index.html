@@ -60,8 +60,50 @@
     <h1>Rent vs Buying Calculator</h1>
     <p style="text-align:center;">See the full breakdown of what you'd pay and keep</p>
 
-    <!-- INPUT SECTIONS SAME AS BEFORE -->
-    <!-- ... [Same Inputs from previous code] ... -->
+    <div class="section">
+        <h2>Buying Inputs</h2>
+        <label>Home Purchase Price ($):</label>
+        <input type="number" id="homePrice" value="300000">
+
+        <label>Down Payment (%):</label>
+        <input type="number" id="downPayment" value="5">
+
+        <label>Loan Interest Rate (%):</label>
+        <input type="number" id="interestRate" value="6.5">
+
+        <label>Loan Term (years):</label>
+        <input type="number" id="loanTerm" value="30">
+
+        <label>Annual Property Value Growth (%):</label>
+        <input type="number" id="growthRate" value="2">
+
+        <label>Annual Property Taxes:</label>
+        <input type="number" id="propertyTaxes" value="0.5">
+        <select id="taxType">
+            <option value="percent">Percent of Home Value (%)</option>
+            <option value="fixed">Fixed Amount ($)</option>
+        </select>
+
+        <label>Annual Insurance Cost ($):</label>
+        <input type="number" id="insurance" value="1500">
+    </div>
+
+    <div class="section">
+        <h2>Renting Inputs</h2>
+        <label>Monthly Rent ($):</label>
+        <input type="number" id="monthlyRent" value="1600">
+
+        <label>Annual Rent Increase (%):</label>
+        <input type="number" id="rentIncrease" value="3">
+    </div>
+
+    <div class="section">
+        <label>Years to Compare:</label>
+        <input type="number" id="years" value="5">
+
+        <label>Expected Investment Return (%):</label>
+        <input type="number" id="investmentReturn" value="7">
+    </div>
 
     <div class="results" id="results"></div>
 
@@ -170,7 +212,42 @@
             chart = new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: ['Renting Total Cost', 'Net Rent Loss', '
+                    labels: ['Renting Total Cost', 'Net Rent Loss', 'Cash After Sale (Buying)', 'Investment Gains'],
+                    datasets: [{
+                        label: 'Comparison ($)',
+                        data: [totalRentCost, netRentLoss, cashAfterSale, futureStockValue],
+                        borderColor: '#2980b9',
+                        backgroundColor: 'rgba(41, 128, 185, 0.1)',
+                        fill: true,
+                        tension: 0.3,
+                        pointBackgroundColor: '#2980b9',
+                        pointRadius: 5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return '$' + value.toLocaleString();
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        document.querySelectorAll('input, select').forEach(el => {
+            el.addEventListener('input', calculate);
+        });
+        window.onload = calculate;
+    </script>
+
+</body>
+</html>
 
 
 
