@@ -2,12 +2,12 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Rent vs Buying Trends | Chris Garrard</title>
+    <title>Rent vs Buying | Chris Garrard</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            padding: 20px;
-            max-width: 900px;
+            padding: 10px;
+            max-width: 1000px;
             margin: auto;
             background-color: #f7f7f7;
             color: #333;
@@ -15,37 +15,40 @@
         h1 {
             text-align: center;
             color: #2c3e50;
+            font-size: 22px;
+            margin-bottom: 10px;
         }
-        label {
-            display: block;
-            margin-top: 10px;
+        .form-section {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+        .form-section label {
+            font-size: 13px;
             font-weight: bold;
+            margin-bottom: 2px;
+            display: block;
         }
-        input, select {
+        .form-section input, .form-section select {
             width: 100%;
-            padding: 6px;
-            margin-top: 4px;
-            border-radius: 4px;
+            padding: 5px;
+            font-size: 13px;
+            border-radius: 3px;
             border: 1px solid #ccc;
         }
-        .section {
-            padding-top: 10px;
-            margin-top: 10px;
-        }
-        .results {
-            margin-top: 20px;
-            padding: 10px;
-            background: #fff;
-            border: 1px solid #ccc;
-            border-radius: 5px;
+        .form-group {
+            width: 48%;
         }
         canvas {
-            margin-top: 20px;
+            margin-top: 10px;
+            max-height: 300px;
         }
         footer {
-            margin-top: 20px;
+            margin-top: 10px;
             text-align: center;
-            font-size: 12px;
+            font-size: 11px;
             color: #777;
         }
     </style>
@@ -53,179 +56,43 @@
 </head>
 <body>
 
-    <h1>Rent vs Buy Trends Over Time</h1>
+    <h1>Rent vs Buy Trend Calculator</h1>
 
-    <div class="section">
-        <label>Home Price ($):</label>
-        <input type="number" id="homePrice" value="300000">
-
-        <label>Down Payment (%):</label>
-        <input type="number" id="downPayment" value="5">
-
-        <label>Interest Rate (%):</label>
-        <input type="number" id="interestRate" value="6.5">
-
-        <label>Property Value Growth (%/yr):</label>
-        <input type="number" id="growthRate" value="2">
-
-        <label>Property Taxes (% or $ Annual):</label>
-        <input type="number" id="propertyTaxes" value="0.5">
-        <select id="taxType">
-            <option value="percent">Percent</option>
-            <option value="fixed">Fixed $</option>
-        </select>
-
-        <label>Insurance ($ Annual):</label>
-        <input type="number" id="insurance" value="1500">
-    </div>
-
-    <div class="section">
-        <label>Monthly Rent ($):</label>
-        <input type="number" id="monthlyRent" value="1600">
-
-        <label>Rent Increase (%/yr):</label>
-        <input type="number" id="rentIncrease" value="3">
-
-        <label>Years:</label>
-        <input type="number" id="years" value="10">
-
-        <label>Investment Return (%/yr):</label>
-        <input type="number" id="investmentReturn" value="7">
-    </div>
-
-    <canvas id="comparisonChart" width="100%" height="400px"></canvas>
-
-    <footer>
-        Blue = Buying Cash-Out | Orange = Rent Paid | Green = Investment Growth<br>
-        Chris Garrard | Veteran-Owned Real Estate
-    </footer>
-
-    <script>
-        let chart;
-
-        function calculate() {
-            const getValue = (id) => parseFloat(document.getElementById(id).value) || 0;
-
-            const homePrice = getValue('homePrice');
-            const downPaymentPercent = getValue('downPayment');
-            const interestRateMonthly = getValue('interestRate') / 100 / 12;
-            const growthRate = getValue('growthRate') / 100;
-            const taxType = document.getElementById('taxType').value;
-            const propertyTaxInput = getValue('propertyTaxes');
-            const annualInsurance = getValue('insurance');
-            let monthlyRent = getValue('monthlyRent');
-            const rentIncrease = getValue('rentIncrease') / 100;
-            const years = getValue('years');
-            const annualStockReturn = getValue('investmentReturn') / 100;
-            const stockReturnMonthly = Math.pow(1 + annualStockReturn, 1 / 12) - 1;
-
-            const downPayment = homePrice * (downPaymentPercent / 100);
-            const loanAmount = homePrice - downPayment;
-            const monthlyPI = loanAmount * interestRateMonthly / (1 - Math.pow(1 + interestRateMonthly, -30 * 12));
-
-            let monthlyTax = (taxType === 'percent') ? (homePrice * (propertyTaxInput / 100)) / 12 : propertyTaxInput / 12;
-            const monthlyInsurance = annualInsurance / 12;
-            const totalMonthlyMortgage = monthlyPI + monthlyTax + monthlyInsurance;
-
-            let rentPaid = 0;
-            let homeValue = homePrice;
-            let remainingLoan = loanAmount;
-            let futureStockValue = 0;
-
-            let rentData = [];
-            let buyData = [];
-            let investData = [];
-            let labels = [];
-
-            for (let i = 1; i <= years; i++) {
-                // Rent calculation
-                rentPaid += monthlyRent * 12;
-                monthlyRent *= (1 + rentIncrease);
-
-                // Home value growth
-                homeValue *= (1 + growthRate);
-
-                // Loan balance after i years
-                remainingLoan = remainingLoan * Math.pow(1 + interestRateMonthly, 12) - (monthlyPI * ((Math.pow(1 + interestRateMonthly, 12) - 1) / interestRateMonthly));
-
-                // Selling costs and cash-out
-                const sellingCosts = homeValue * 0.07;
-                const cashAfterSale = homeValue - remainingLoan - sellingCosts;
-
-                // Investment growth from monthly difference
-                const monthlyDifference = totalMonthlyMortgage - (rentPaid / i / 12);
-                if (monthlyDifference > 0) {
-                    for (let m = 0; m < 12; m++) {
-                        futureStockValue = (futureStockValue + monthlyDifference) * (1 + stockReturnMonthly);
-                    }
-                }
-
-                labels.push(i + ' yr');
-                rentData.push(rentPaid);
-                buyData.push(cashAfterSale);
-                investData.push(futureStockValue);
-            }
-
-            updateChart(labels, rentData, buyData, investData);
-        }
-
-        function updateChart(labels, rentData, buyData, investData) {
-            const ctx = document.getElementById('comparisonChart').getContext('2d');
-            if (chart) chart.destroy();
-
-            chart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [
-                        {
-                            label: 'Rent Paid',
-                            data: rentData,
-                            borderColor: '#e67e22',
-                            fill: false,
-                            tension: 0.3
-                        },
-                        {
-                            label: 'Buying Cash-Out',
-                            data: buyData,
-                            borderColor: '#2980b9',
-                            fill: false,
-                            tension: 0.3
-                        },
-                        {
-                            label: 'Investment Growth',
-                            data: investData,
-                            borderColor: '#27ae60',
-                            fill: false,
-                            tension: 0.3
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                callback: function(value) {
-                                    return '$' + value.toLocaleString();
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-        }
-
-        document.querySelectorAll('input, select').forEach(el => {
-            el.addEventListener('input', calculate);
-        });
-        window.onload = calculate;
-    </script>
-
-</body>
-</html>
-
+    <div class="form-section">
+        <div class="form-group">
+            <label>Home Price ($)</label>
+            <input type="number" id="homePrice" value="300000">
+        </div>
+        <div class="form-group">
+            <label>Down Payment (%)</label>
+            <input type="number" id="downPayment" value="5">
+        </div>
+        <div class="form-group">
+            <label>Interest Rate (%)</label>
+            <input type="number" id="interestRate" value="6.5">
+        </div>
+        <div class="form-group">
+            <label>Value Growth (%/yr)</label>
+            <input type="number" id="growthRate" value="2">
+        </div>
+        <div class="form-group">
+            <label>Property Taxes</label>
+            <input type="number" id="propertyTaxes" value="0.5">
+            <select id="taxType">
+                <option value="percent">Percent</option>
+                <option value="fixed">Fixed $</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Insurance ($ Annual)</label>
+            <input type="number" id="insurance" value="1500">
+        </div>
+        <div class="form-group">
+            <label>Monthly Rent ($)</label>
+            <input type="number" id="monthlyRent" value="1600">
+        </div>
+        <div class="form-group">
+            <label>Rent Increase (%/yr)</label>
 
 
 
