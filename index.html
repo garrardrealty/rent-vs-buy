@@ -49,7 +49,7 @@
 <body>
 
     <h1>Rent vs Buy & Sell in 5 Years</h1>
-    <p style="text-align:center;">Which Puts More Money in Your Pocket?</p>
+    <p style="text-align:center;">See the full breakdown of what you'd pay and keep</p>
 
     <label>Home Purchase Price ($):</label>
     <input type="number" id="homePrice" value="300000">
@@ -71,6 +71,12 @@
 
     <label>Annual Rent Increase (%):</label>
     <input type="number" id="rentIncrease" value="3">
+
+    <label>Annual Property Taxes (% of Home Value):</label>
+    <input type="number" id="propertyTaxes" value="0.5">
+
+    <label>Annual Insurance Cost ($):</label>
+    <input type="number" id="insurance" value="1500">
 
     <label>Years to Compare:</label>
     <input type="number" id="years" value="5">
@@ -94,16 +100,23 @@
             const interestRateMonthly = getValue('interestRate') / 100 / 12;
             const loanTermMonths = getValue('loanTerm') * 12;
             const growthRate = getValue('growthRate') / 100;
+            const propertyTaxRate = getValue('propertyTaxes') / 100;
+            const annualInsurance = getValue('insurance');
             let monthlyRent = getValue('monthlyRent');
             const rentIncrease = getValue('rentIncrease') / 100;
             const years = getValue('years');
+
             const sellingCostPercent = 0.07; // 7% selling costs
             const annualStockReturn = 0.07;
             const stockReturnMonthly = Math.pow(1 + annualStockReturn, 1 / 12) - 1;
 
             const downPayment = homePrice * (downPaymentPercent / 100);
             const loanAmount = homePrice - downPayment;
-            const monthlyPrincipalInterest = loanAmount * interestRateMonthly / (1 - Math.pow(1 + interestRateMonthly, -loanTermMonths));
+            const monthlyPI = loanAmount * interestRateMonthly / (1 - Math.pow(1 + interestRateMonthly, -loanTermMonths));
+
+            const monthlyTax = (homePrice * propertyTaxRate) / 12;
+            const monthlyInsurance = annualInsurance / 12;
+            const totalMonthlyMortgage = monthlyPI + monthlyTax + monthlyInsurance;
 
             let totalRentCost = 0;
             let homeValue = homePrice;
@@ -114,14 +127,13 @@
                 totalRentCost += monthlyRent * 12;
                 monthlyRent *= (1 + rentIncrease);
 
-                remainingLoan = remainingLoan * Math.pow(1 + interestRateMonthly, 12) - (monthlyPrincipalInterest * ((Math.pow(1 + interestRateMonthly, 12) - 1) / interestRateMonthly));
+                remainingLoan = remainingLoan * Math.pow(1 + interestRateMonthly, 12) - (monthlyPI * ((Math.pow(1 + interestRateMonthly, 12) - 1) / interestRateMonthly));
             }
 
             const sellingCosts = homeValue * sellingCostPercent;
             const cashAfterSale = homeValue - remainingLoan - sellingCosts;
 
             const averageMonthlyRent = totalRentCost / (years * 12);
-            const totalMonthlyMortgage = monthlyPrincipalInterest;
             const monthlyDifference = totalMonthlyMortgage - averageMonthlyRent;
 
             let futureStockValue = 0;
@@ -132,11 +144,6 @@
             }
 
             const netRentLoss = totalRentCost - futureStockValue;
-            const buyVsRentDifference = cashAfterSale - netRentLoss;
-
-            const resultMessage = buyVsRentDifference > 0
-                ? `Buying is better! You are $${formatNumber(buyVsRentDifference)} ahead compared to renting.`
-                : `Renting is cheaper by $${formatNumber(Math.abs(buyVsRentDifference))}, but remember buying builds equity.`;
 
             document.getElementById('results').innerHTML = `
                 <strong>Renting Total Cost Over ${years} Years:</strong> $${formatNumber(totalRentCost)}<br><br>
@@ -148,7 +155,7 @@
 
                 <strong>Monthly Breakdown:</strong><br>
                 Average Monthly Rent: $${formatNumber(averageMonthlyRent)}<br>
-                Estimated Monthly Mortgage (Principal & Interest): $${formatNumber(totalMonthlyMortgage)}<br><br>
+                Estimated Monthly Mortgage (Principal + Taxes + Insurance): $${formatNumber(totalMonthlyMortgage)}<br><br>
 
                 <strong>Investment Simulation:</strong><br>
                 If you rented and invested $${formatNumber(monthlyDifference)} per month at 7% annual return,<br>
@@ -156,8 +163,7 @@
 
                 <strong>Net Result:</strong><br>
                 Renting cost you $${formatNumber(totalRentCost)} minus $${formatNumber(futureStockValue)} invested = Net Rent Loss: <strong>$${formatNumber(netRentLoss)}</strong><br>
-                Buying gave you <strong>$${formatNumber(cashAfterSale)}</strong> after selling.<br>
-                <strong>${resultMessage}</strong>
+                Buying gave you <strong>$${formatNumber(cashAfterSale)}</strong> after selling.
             `;
         }
 
@@ -169,6 +175,7 @@
 
 </body>
 </html>
+
 
 
 
