@@ -1,73 +1,68 @@
-<!-- Calculator Form -->
-<div>
-    <label>Home Price: <input type="number" id="homePrice"></label><br>
-    <label>Down Payment (%): <input type="number" id="downPayment"></label><br>
-    <label>Interest Rate (%): <input type="number" id="interestRate"></label><br>
-    <label>Loan Term (Years): <input type="number" id="loanTerm"></label><br>
-    <label>Property Taxes (%): <input type="number" id="propertyTaxes"></label><br>
-    <label>Insurance (Annual): <input type="number" id="insurance"></label><br>
-    <label>Home Value Growth Rate (%): <input type="number" id="growthRate"></label><br>
-    <label>Monthly Rent: <input type="number" id="monthlyRent"></label><br>
-    <label>Rent Increase per Year (%): <input type="number" id="rentIncrease"></label><br>
-    <label>Years Planning to Stay: <input type="number" id="years"></label><br><br>
+function formatNumber(num) {
+    return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
 
-    <div id="results"></div>
-</div>
+function calculate() {
+    const getValue = (id) => parseFloat(document.getElementById(id).value) || 0;
 
-<!-- Your Script -->
-<script>
-    function calculate() {
-        const getValue = (id) => parseFloat(document.getElementById(id).value) || 0;
+    const homePrice = getValue('homePrice');
+    const downPaymentPercent = getValue('downPayment');
+    const interestRateMonthly = getValue('interestRate') / 100 / 12;
+    const loanTermMonths = getValue('loanTerm') * 12;
+    const propertyTaxesPercent = getValue('propertyTaxes') / 100;
+    const insurance = getValue('insurance');
+    const growthRate = getValue('growthRate') / 100;
+    let monthlyRent = getValue('monthlyRent');
+    const rentIncrease = getValue('rentIncrease') / 100;
+    const years = getValue('years');
+    const annualStockReturn = 0.07; // 7% average stock return
+    const stockReturnMonthly = Math.pow(1 + annualStockReturn, 1 / 12) - 1;
 
-        const homePrice = getValue('homePrice');
-        const downPaymentPercent = getValue('downPayment');
-        const interestRateMonthly = getValue('interestRate') / 100 / 12;
-        const loanTermMonths = getValue('loanTerm') * 12;
-        const propertyTaxesPercent = getValue('propertyTaxes') / 100;
-        const insurance = getValue('insurance');
-        const growthRate = getValue('growthRate') / 100;
-        let monthlyRent = getValue('monthlyRent');
-        const rentIncrease = getValue('rentIncrease') / 100;
-        const years = getValue('years');
+    const downPayment = homePrice * (downPaymentPercent / 100);
+    const loanAmount = homePrice - downPayment;
+    const monthlyPayment = loanAmount * interestRateMonthly / (1 - Math.pow(1 + interestRateMonthly, -loanTermMonths));
 
-        if (!homePrice || !loanTermMonths || !years) {
-            document.getElementById('results').innerHTML = "<strong>Please fill in all values to calculate.</strong>";
-            return;
-        }
+    let totalBuyCost = downPayment;
+    let totalRentCost = 0;
+    let homeValue = homePrice;
+    let monthlyDifference = 0;
+    let futureStockValue = 0;
 
-        const downPayment = homePrice * (downPaymentPercent / 100);
-        const loanAmount = homePrice - downPayment;
-        const monthlyPayment = loanAmount * interestRateMonthly / (1 - Math.pow(1 + interestRateMonthly, -loanTermMonths));
+    for (let i = 1; i <= years; i++) {
+        const yearlyMortgage = monthlyPayment * 12;
+        const yearlyTaxes = propertyTaxesPercent * homeValue;
+        const yearlyMaintenance = 0.015 * homeValue;
+        totalBuyCost += yearlyMortgage + yearlyTaxes + insurance + yearlyMaintenance;
 
-        let totalBuyCost = downPayment;
-        let totalRentCost = 0;
-        let homeValue = homePrice;
-
-        for (let i = 1; i <= years; i++) {
-            const yearlyMortgage = monthlyPayment * 12;
-            const yearlyTaxes = propertyTaxesPercent * homeValue;
-            const yearlyMaintenance = 0.015 * homeValue;
-            totalBuyCost += yearlyMortgage + yearlyTaxes + insurance + yearlyMaintenance;
-
-            homeValue *= (1 + growthRate); // Compound home value
-            totalRentCost += monthlyRent * 12;
-            monthlyRent *= (1 + rentIncrease); // Increase rent annually
-        }
-
-        const equity = homeValue - loanAmount; // Simplified estimate
-
-        document.getElementById('results').innerHTML = `
-            <strong>Buying Total Cost:</strong> $${totalBuyCost.toFixed(2)}<br>
-            <strong>Home Value After ${years} Years:</strong> $${homeValue.toFixed(2)}<br>
-            <strong>Estimated Equity:</strong> $${equity.toFixed(2)}<br>
-            <strong>Renting Total Cost:</strong> $${totalRentCost.toFixed(2)}<br>
-            <strong>Difference (Renting - Buying):</strong> $${(totalRentCost - (totalBuyCost - equity)).toFixed(2)}
-        `;
+        homeValue *= (1 + growthRate);
+        totalRentCost += monthlyRent * 12;
+        monthlyRent *= (1 + rentIncrease);
     }
 
-    document.querySelectorAll('input').forEach(input => {
-        input.addEventListener('input', calculate);
-    });
+    const averageAnnualRent = totalRentCost / years;
+    const averageMonthlyRent = averageAnnualRent / 12;
+    const equity = homeValue - loanAmount;
+    const netGain = equity - (totalBuyCost - equity);
 
-    window.onload = calculate;
-</script>
+    // Monthly difference between rent and mortgage
+    monthlyDifference = averageMonthlyRent - monthlyPayment;
+
+    // Stock return simulation
+    for (let m = 0; m < years * 12; m++) {
+        futureStockValue = (futureStockValue + (monthlyDifference > 0 ? monthlyDifference : 0)) * (1 + stockReturnMonthly);
+    }
+
+    document.getElementById('results').innerHTML = `
+        <strong>Renting Total Cost:</strong> $${formatNumber(totalRentCost)}<br>
+        <strong>Buying Would Gain You:</strong> $${formatNumber(equity)}<br>
+        <strong>Net Difference:</strong> $${formatNumber(Math.abs(equity - totalRentCost))} ${equity > totalRentCost ? 'better to Buy' : 'better to Rent'}<br><br>
+        
+        <strong>Monthly Rent:</strong> $${formatNumber(averageMonthlyRent)}<br>
+        <strong>Estimated Mortgage Payment:</strong> $${formatNumber(monthlyPayment)}<br>
+        <strong>Monthly Difference (Rent - Mortgage):</strong> $${formatNumber(monthlyDifference)}<br><br>
+
+        If you invested $${formatNumber(monthlyDifference)} per month at 7% annual return,<br>
+        you'd have about <strong>$${formatNumber(futureStockValue)}</strong> after ${years} years.
+    `;
+}
+
