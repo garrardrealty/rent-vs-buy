@@ -43,6 +43,9 @@
         .results strong {
             color: #2980b9;
         }
+        canvas {
+            margin-top: 30px;
+        }
         footer {
             margin-top: 40px;
             text-align: center;
@@ -50,6 +53,7 @@
             color: #777;
         }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
@@ -96,15 +100,22 @@
     <div class="section">
         <label>Years to Compare:</label>
         <input type="number" id="years" value="5">
+
+        <label>Expected Investment Return (%):</label>
+        <input type="number" id="investmentReturn" value="7">
     </div>
 
     <div class="results" id="results"></div>
+
+    <canvas id="comparisonChart" width="100%" height="400px"></canvas>
 
     <footer>
         Chris Garrard | Veteran-Owned Real Estate
     </footer>
 
     <script>
+        let chart;
+
         function formatNumber(num) {
             return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         }
@@ -123,10 +134,10 @@
             let monthlyRent = getValue('monthlyRent');
             const rentIncrease = getValue('rentIncrease') / 100;
             const years = getValue('years');
+            const annualStockReturn = getValue('investmentReturn') / 100;
+            const stockReturnMonthly = Math.pow(1 + annualStockReturn, 1 / 12) - 1;
 
             const sellingCostPercent = 0.07;
-            const annualStockReturn = 0.07;
-            const stockReturnMonthly = Math.pow(1 + annualStockReturn, 1 / 12) - 1;
 
             const downPayment = homePrice * (downPaymentPercent / 100);
             const loanAmount = homePrice - downPayment;
@@ -182,13 +193,46 @@
                 Monthly Difference (Mortgage - Rent): $${formatNumber(monthlyDifference)}<br><br>
 
                 <strong>Investment Simulation:</strong><br>
-                If you rented and invested $${formatNumber(monthlyDifference)} per month at 7% annual return,<br>
+                If you rented and invested $${formatNumber(monthlyDifference)} per month at ${getValue('investmentReturn')}% annual return,<br>
                 you'd have about <strong>$${formatNumber(futureStockValue)}</strong> after ${years} years.<br><br>
 
                 <strong>Net Result:</strong><br>
                 Renting cost you $${formatNumber(totalRentCost)} minus $${formatNumber(futureStockValue)} invested = Net Rent Loss: <strong>$${formatNumber(netRentLoss)}</strong><br>
                 Buying gave you <strong>$${formatNumber(cashAfterSale)}</strong> after selling.
             `;
+
+            updateChart(totalRentCost, netRentLoss, cashAfterSale, futureStockValue);
+        }
+
+        function updateChart(totalRentCost, netRentLoss, cashAfterSale, futureStockValue) {
+            const ctx = document.getElementById('comparisonChart').getContext('2d');
+            if (chart) {
+                chart.destroy();
+            }
+            chart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Renting Total Cost', 'Net Rent Loss', 'Cash After Sale (Buying)', 'Investment Gains'],
+                    datasets: [{
+                        label: 'Amount ($)',
+                        data: [totalRentCost, netRentLoss, cashAfterSale, futureStockValue],
+                        backgroundColor: ['#f39c12', '#e74c3c', '#27ae60', '#2980b9']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return '$' + value.toLocaleString();
+                                }
+                            }
+                        }
+                    }
+                }
+            });
         }
 
         document.querySelectorAll('input, select').forEach(el => {
