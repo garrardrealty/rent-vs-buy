@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Rent vs Buy & Sell Calculator | Chris Garrard Realty</title>
+    <title>Rent vs Buy Calculator | Chris Garrard Realty</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -21,7 +21,7 @@
             margin-top: 15px;
             font-weight: bold;
         }
-        input {
+        input, select {
             width: 100%;
             padding: 8px;
             margin-top: 5px;
@@ -48,8 +48,8 @@
 </head>
 <body>
 
-    <h1>Rent vs Buy & Sell in 5 Years</h1>
-    <p style="text-align:center;">See the full breakdown of what you'd pay and keep</p>
+    <h1>Rent vs Buy Calculator</h1>
+    <p style="text-align:center;">Helping Families Make Smart Financial Decisions About Homeownership</p>
 
     <label>Home Purchase Price ($):</label>
     <input type="number" id="homePrice" value="300000">
@@ -63,6 +63,16 @@
     <label>Loan Term (years):</label>
     <input type="number" id="loanTerm" value="30">
 
+    <label>Annual Property Taxes:</label>
+    <input type="number" id="propertyTaxes" value="0.5">
+    <select id="taxType">
+        <option value="percent">Percent of Home Value (%)</option>
+        <option value="fixed">Fixed Amount ($)</option>
+    </select>
+
+    <label>Annual Home Insurance ($):</label>
+    <input type="number" id="insurance" value="1500">
+
     <label>Annual Property Value Growth (%):</label>
     <input type="number" id="growthRate" value="2">
 
@@ -71,12 +81,6 @@
 
     <label>Annual Rent Increase (%):</label>
     <input type="number" id="rentIncrease" value="3">
-
-    <label>Annual Property Taxes (% of Home Value):</label>
-    <input type="number" id="propertyTaxes" value="0.5">
-
-    <label>Annual Insurance Cost ($):</label>
-    <input type="number" id="insurance" value="1500">
 
     <label>Years to Compare:</label>
     <input type="number" id="years" value="5">
@@ -99,75 +103,72 @@
             const downPaymentPercent = getValue('downPayment');
             const interestRateMonthly = getValue('interestRate') / 100 / 12;
             const loanTermMonths = getValue('loanTerm') * 12;
+            const insurance = getValue('insurance');
+            const taxType = document.getElementById('taxType').value;
             const growthRate = getValue('growthRate') / 100;
-            const propertyTaxRate = getValue('propertyTaxes') / 100;
-            const annualInsurance = getValue('insurance');
             let monthlyRent = getValue('monthlyRent');
             const rentIncrease = getValue('rentIncrease') / 100;
             const years = getValue('years');
-
-            const sellingCostPercent = 0.07; // 7% selling costs
             const annualStockReturn = 0.07;
             const stockReturnMonthly = Math.pow(1 + annualStockReturn, 1 / 12) - 1;
 
             const downPayment = homePrice * (downPaymentPercent / 100);
             const loanAmount = homePrice - downPayment;
-            const monthlyPI = loanAmount * interestRateMonthly / (1 - Math.pow(1 + interestRateMonthly, -loanTermMonths));
+            const monthlyPayment = loanAmount * interestRateMonthly / (1 - Math.pow(1 + interestRateMonthly, -loanTermMonths));
 
-            const monthlyTax = (homePrice * propertyTaxRate) / 12;
-            const monthlyInsurance = annualInsurance / 12;
-            const totalMonthlyMortgage = monthlyPI + monthlyTax + monthlyInsurance;
-
+            let totalBuyCost = downPayment;
             let totalRentCost = 0;
             let homeValue = homePrice;
-            let remainingLoan = loanAmount;
+            let monthlyDifference = 0;
+            let futureStockValue = 0;
 
             for (let i = 1; i <= years; i++) {
+                const yearlyMortgage = monthlyPayment * 12;
+
+                let yearlyTaxes = 0;
+                if (taxType === 'percent') {
+                    yearlyTaxes = (getValue('propertyTaxes') / 100) * homeValue;
+                } else {
+                    yearlyTaxes = getValue('propertyTaxes');
+                }
+
+                const yearlyMaintenance = 0.015 * homeValue;
+                totalBuyCost += yearlyMortgage + yearlyTaxes + insurance + yearlyMaintenance;
+
                 homeValue *= (1 + growthRate);
                 totalRentCost += monthlyRent * 12;
                 monthlyRent *= (1 + rentIncrease);
-
-                remainingLoan = remainingLoan * Math.pow(1 + interestRateMonthly, 12) - (monthlyPI * ((Math.pow(1 + interestRateMonthly, 12) - 1) / interestRateMonthly));
             }
 
-            const sellingCosts = homeValue * sellingCostPercent;
-            const cashAfterSale = homeValue - remainingLoan - sellingCosts;
+            const averageAnnualRent = totalRentCost / years;
+            const averageMonthlyRent = averageAnnualRent / 12;
+            const equity = homeValue - loanAmount;
+            const netDifference = equity - totalRentCost;
 
-            const averageMonthlyRent = totalRentCost / (years * 12);
-            const monthlyDifference = totalMonthlyMortgage - averageMonthlyRent;
+            monthlyDifference = monthlyPayment - averageMonthlyRent; // Difference between owning and renting
 
-            let futureStockValue = 0;
+            // Stock return simulation: only invest if renting saves money
             if (monthlyDifference > 0) {
                 for (let m = 0; m < years * 12; m++) {
                     futureStockValue = (futureStockValue + monthlyDifference) * (1 + stockReturnMonthly);
                 }
             }
 
-            const netRentLoss = totalRentCost - futureStockValue;
-
             document.getElementById('results').innerHTML = `
-                <strong>Renting Total Cost Over ${years} Years:</strong> $${formatNumber(totalRentCost)}<br><br>
+                <strong>Renting Total Cost:</strong> $${formatNumber(totalRentCost)}<br>
+                <strong>Buying Would Gain You:</strong> $${formatNumber(equity)}<br>
+                <strong>Net Difference:</strong> $${formatNumber(Math.abs(netDifference))} ${netDifference > 0 ? 'better to Buy' : 'better to Rent'}<br><br>
+                
+                <strong>Monthly Rent:</strong> $${formatNumber(averageMonthlyRent)}<br>
+                <strong>Estimated Mortgage Payment:</strong> $${formatNumber(monthlyPayment)}<br>
+                <strong>Monthly Difference (Mortgage - Rent):</strong> $${formatNumber(monthlyDifference)}<br><br>
 
-                <strong>Estimated Home Value After ${years} Years:</strong> $${formatNumber(homeValue)}<br>
-                <strong>Remaining Loan Balance:</strong> $${formatNumber(remainingLoan)}<br>
-                <strong>Estimated Selling Costs (7%):</strong> $${formatNumber(sellingCosts)}<br>
-                <strong>Cash You’d Pocket After Selling:</strong> <strong>$${formatNumber(cashAfterSale)}</strong><br><br>
-
-                <strong>Monthly Breakdown:</strong><br>
-                Average Monthly Rent: $${formatNumber(averageMonthlyRent)}<br>
-                Estimated Monthly Mortgage (Principal + Taxes + Insurance): $${formatNumber(totalMonthlyMortgage)}<br><br>
-
-                <strong>Investment Simulation:</strong><br>
                 If you rented and invested $${formatNumber(monthlyDifference)} per month at 7% annual return,<br>
-                you'd have about <strong>$${formatNumber(futureStockValue)}</strong> after ${years} years.<br><br>
-
-                <strong>Net Result:</strong><br>
-                Renting cost you $${formatNumber(totalRentCost)} minus $${formatNumber(futureStockValue)} invested = Net Rent Loss: <strong>$${formatNumber(netRentLoss)}</strong><br>
-                Buying gave you <strong>$${formatNumber(cashAfterSale)}</strong> after selling.
+                you'd have about <strong>$${formatNumber(futureStockValue)}</strong> after ${years} years.
             `;
         }
 
-        document.querySelectorAll('input').forEach(el => {
+        document.querySelectorAll('input, select').forEach(el => {
             el.addEventListener('input', calculate);
         });
         window.onload = calculate;
@@ -175,6 +176,7 @@
 
 </body>
 </html>
+
 
 
 
