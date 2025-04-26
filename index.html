@@ -21,7 +21,7 @@
             margin-top: 15px;
             font-weight: bold;
         }
-        input {
+        input, select {
             width: 100%;
             padding: 8px;
             margin-top: 5px;
@@ -64,12 +64,11 @@
     <input type="number" id="loanTerm" value="30">
 
     <label>Annual Property Taxes:</label>
-<input type="number" id="propertyTaxes" value="0.5">
-<select id="taxType">
-    <option value="percent">Percent of Home Value (%)</option>
-    <option value="fixed">Fixed Amount ($)</option>
-</select>
-
+    <input type="number" id="propertyTaxes" value="0.5">
+    <select id="taxType">
+        <option value="percent">Percent of Home Value (%)</option>
+        <option value="fixed">Fixed Amount ($)</option>
+    </select>
 
     <label>Annual Home Insurance ($):</label>
     <input type="number" id="insurance" value="1500">
@@ -93,84 +92,87 @@
     </footer>
 
     <script>
-     function formatNumber(num) {
-    return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-}
-
-function calculate() {
-    const getValue = (id) => parseFloat(document.getElementById(id).value) || 0;
-
-    const homePrice = getValue('homePrice');
-    const downPaymentPercent = getValue('downPayment');
-    const interestRateMonthly = getValue('interestRate') / 100 / 12;
-    const loanTermMonths = getValue('loanTerm') * 12;
-    const insurance = getValue('insurance');
-    const taxType = document.getElementById('taxType').value;
-    const growthRate = getValue('growthRate') / 100;
-    let monthlyRent = getValue('monthlyRent');
-    const rentIncrease = getValue('rentIncrease') / 100;
-    const years = getValue('years');
-    const annualStockReturn = 0.07;
-    const stockReturnMonthly = Math.pow(1 + annualStockReturn, 1 / 12) - 1;
-
-    const downPayment = homePrice * (downPaymentPercent / 100);
-    const loanAmount = homePrice - downPayment;
-    const monthlyPayment = loanAmount * interestRateMonthly / (1 - Math.pow(1 + interestRateMonthly, -loanTermMonths));
-
-    let totalBuyCost = downPayment;
-    let totalRentCost = 0;
-    let homeValue = homePrice;
-    let monthlyDifference = 0;
-    let futureStockValue = 0;
-
-    for (let i = 1; i <= years; i++) {
-        const yearlyMortgage = monthlyPayment * 12;
-
-        let yearlyTaxes = 0;
-        if (taxType === 'percent') {
-            yearlyTaxes = (getValue('propertyTaxes') / 100) * homeValue;
-        } else {
-            yearlyTaxes = getValue('propertyTaxes');
+        function formatNumber(num) {
+            return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         }
 
-        const yearlyMaintenance = 0.015 * homeValue;
-        totalBuyCost += yearlyMortgage + yearlyTaxes + insurance + yearlyMaintenance;
+        function calculate() {
+            const getValue = (id) => parseFloat(document.getElementById(id).value) || 0;
 
-        homeValue *= (1 + growthRate);
-        totalRentCost += monthlyRent * 12;
-        monthlyRent *= (1 + rentIncrease);
-    }
+            const homePrice = getValue('homePrice');
+            const downPaymentPercent = getValue('downPayment');
+            const interestRateMonthly = getValue('interestRate') / 100 / 12;
+            const loanTermMonths = getValue('loanTerm') * 12;
+            const insurance = getValue('insurance');
+            const taxType = document.getElementById('taxType').value;
+            const growthRate = getValue('growthRate') / 100;
+            let monthlyRent = getValue('monthlyRent');
+            const rentIncrease = getValue('rentIncrease') / 100;
+            const years = getValue('years');
+            const annualStockReturn = 0.07;
+            const stockReturnMonthly = Math.pow(1 + annualStockReturn, 1 / 12) - 1;
 
-    const averageAnnualRent = totalRentCost / years;
-    const averageMonthlyRent = averageAnnualRent / 12;
-    const equity = homeValue - loanAmount;
-    const netDifference = equity - totalRentCost;
+            const downPayment = homePrice * (downPaymentPercent / 100);
+            const loanAmount = homePrice - downPayment;
+            const monthlyPayment = loanAmount * interestRateMonthly / (1 - Math.pow(1 + interestRateMonthly, -loanTermMonths));
 
-    monthlyDifference = monthlyPayment - averageMonthlyRent; // Flip logic: what you'd save by renting
+            let totalBuyCost = downPayment;
+            let totalRentCost = 0;
+            let homeValue = homePrice;
+            let monthlyDifference = 0;
+            let futureStockValue = 0;
 
-    // Stock return simulation: only invest if renting is cheaper
-    if (monthlyDifference > 0) {
-        for (let m = 0; m < years * 12; m++) {
-            futureStockValue = (futureStockValue + monthlyDifference) * (1 + stockReturnMonthly);
+            for (let i = 1; i <= years; i++) {
+                const yearlyMortgage = monthlyPayment * 12;
+
+                let yearlyTaxes = 0;
+                if (taxType === 'percent') {
+                    yearlyTaxes = (getValue('propertyTaxes') / 100) * homeValue;
+                } else {
+                    yearlyTaxes = getValue('propertyTaxes');
+                }
+
+                const yearlyMaintenance = 0.015 * homeValue;
+                totalBuyCost += yearlyMortgage + yearlyTaxes + insurance + yearlyMaintenance;
+
+                homeValue *= (1 + growthRate);
+                totalRentCost += monthlyRent * 12;
+                monthlyRent *= (1 + rentIncrease);
+            }
+
+            const averageAnnualRent = totalRentCost / years;
+            const averageMonthlyRent = averageAnnualRent / 12;
+            const equity = homeValue - loanAmount;
+            const netDifference = equity - totalRentCost;
+
+            monthlyDifference = monthlyPayment - averageMonthlyRent; // Difference between owning and renting
+
+            // Stock return simulation: only invest if renting saves money
+            if (monthlyDifference > 0) {
+                for (let m = 0; m < years * 12; m++) {
+                    futureStockValue = (futureStockValue + monthlyDifference) * (1 + stockReturnMonthly);
+                }
+            }
+
+            document.getElementById('results').innerHTML = `
+                <strong>Renting Total Cost:</strong> $${formatNumber(totalRentCost)}<br>
+                <strong>Buying Would Gain You:</strong> $${formatNumber(equity)}<br>
+                <strong>Net Difference:</strong> $${formatNumber(Math.abs(netDifference))} ${netDifference > 0 ? 'better to Buy' : 'better to Rent'}<br><br>
+                
+                <strong>Monthly Rent:</strong> $${formatNumber(averageMonthlyRent)}<br>
+                <strong>Estimated Mortgage Payment:</strong> $${formatNumber(monthlyPayment)}<br>
+                <strong>Monthly Difference (Mortgage - Rent):</strong> $${formatNumber(monthlyDifference)}<br><br>
+
+                If you rented and invested $${formatNumber(monthlyDifference)} per month at 7% annual return,<br>
+                you'd have about <strong>$${formatNumber(futureStockValue)}</strong> after ${years} years.
+            `;
         }
-    }
 
-    document.getElementById('results').innerHTML = `
-        <strong>Renting Total Cost:</strong> $${formatNumber(totalRentCost)}<br>
-        <strong>Buying Would Gain You:</strong> $${formatNumber(equity)}<br>
-        <strong>Net Difference:</strong> $${formatNumber(Math.abs(netDifference))} ${netDifference > 0 ? 'better to Buy' : 'better to Rent'}<br><br>
-        
-        <strong>Monthly Rent:</strong> $${formatNumber(averageMonthlyRent)}<br>
-        <strong>Estimated Mortgage Payment:</strong> $${formatNumber(monthlyPayment)}<br>
-        <strong>Monthly Difference (Mortgage - Rent):</strong> $${formatNumber(monthlyDifference)}<br><br>
+        document.querySelectorAll('input, select').forEach(el => {
+            el.addEventListener('input', calculate);
+        });
+        window.onload = calculate;
+    </script>
 
-        If you rented and invested $${formatNumber(monthlyDifference)} per month at 7% annual return,<br>
-        you'd have about <strong>$${formatNumber(futureStockValue)}</strong> after ${years} years.
-    `;
-}
-
-document.querySelectorAll('input, select').forEach(el => {
-    el.addEventListener('input', calculate);
-});
-window.onload = calculate;
+</body>
 </html>
