@@ -143,11 +143,13 @@
             const averageAnnualRent = totalRentCost / years;
             const averageMonthlyRent = averageAnnualRent / 12;
             const equity = homeValue - loanAmount;
-            const netDifference = equity - totalRentCost;
 
-            monthlyDifference = monthlyPayment - averageMonthlyRent; // Difference between owning and renting
+            const trueCostOfBuying = totalBuyCost - equity; // Real cost after equity gained
+            const netDifference = totalRentCost - trueCostOfBuying;
 
-            // Stock return simulation: only invest if renting saves money
+            monthlyDifference = monthlyPayment - averageMonthlyRent; // Difference between buying and renting monthly
+
+            // Stock return simulation: only invest if renting is cheaper monthly
             if (monthlyDifference > 0) {
                 for (let m = 0; m < years * 12; m++) {
                     futureStockValue = (futureStockValue + monthlyDifference) * (1 + stockReturnMonthly);
@@ -156,9 +158,12 @@
 
             document.getElementById('results').innerHTML = `
                 <strong>Renting Total Cost:</strong> $${formatNumber(totalRentCost)}<br>
-                <strong>Buying Would Gain You:</strong> $${formatNumber(equity)}<br>
+                <strong>Total Buying Cost:</strong> $${formatNumber(totalBuyCost)}<br>
+                <strong>Equity Gained From Buying:</strong> $${formatNumber(equity)}<br>
+                <strong>True Cost of Buying (after equity):</strong> $${formatNumber(trueCostOfBuying)}<br><br>
+
                 <strong>Net Difference:</strong> $${formatNumber(Math.abs(netDifference))} ${netDifference > 0 ? 'better to Buy' : 'better to Rent'}<br><br>
-                
+
                 <strong>Monthly Rent:</strong> $${formatNumber(averageMonthlyRent)}<br>
                 <strong>Estimated Mortgage Payment:</strong> $${formatNumber(monthlyPayment)}<br>
                 <strong>Monthly Difference (Mortgage - Rent):</strong> $${formatNumber(monthlyDifference)}<br><br>
@@ -173,6 +178,10 @@
         });
         window.onload = calculate;
     </script>
+
+</body>
+</html>
+
 
 </body>
 </html>
