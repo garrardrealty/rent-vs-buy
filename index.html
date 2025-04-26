@@ -167,8 +167,6 @@
             let investData = [];
             let labels = [];
 
-            let breakevenYear = null;
-
             for (let i = 1; i <= years; i++) {
                 rentPaid += monthlyRent * 12;
                 monthlyRent *= (1 + rentIncrease);
@@ -192,30 +190,24 @@
                 buyData.push(buyNetCost);
                 investData.push(futureStockValue);
                 labels.push(i + ' yr');
-
-                if (!breakevenYear && buyNetCost < rentPaid) {
-                    breakevenYear = i;
-                }
             }
 
             updateChart(labels, rentData, buyData, investData);
 
             const rentFinal = rentData[years - 1];
             const buyFinal = buyData[years - 1];
-            const diff = Math.abs(rentFinal - buyFinal);
-            const betterOption = (rentFinal < buyFinal) ? "Renting" : "Buying";
+            const diff = rentFinal - buyFinal;
 
             document.getElementById('summary').innerHTML = `
-                <strong>Year ${years} Summary:</strong><br>
+                <strong>After ${years} Years:</strong><br>
                 Monthly Mortgage (incl. taxes & insurance): $${formatNumber(totalMonthlyMortgage)}<br>
-                Monthly Rent: $${formatNumber(monthlyRent / Math.pow(1 + rentIncrease, years))}<br><br>
+                Monthly Rent (Year 1): $${formatNumber(monthlyRent / Math.pow(1 + rentIncrease, years))}<br><br>
 
-                Total Rent Cost: $${formatNumber(rentFinal)}<br>
-                Total Buy Net Cost: $${formatNumber(buyFinal)}<br>
-                Difference: $${formatNumber(diff)} (${betterOption} is better)<br><br>
+                Total Rent Cost Over ${years} Years: $${formatNumber(rentFinal)}<br>
+                Total Buy Net Cost Over ${years} Years: $${formatNumber(buyFinal)}<br>
+                Difference (Rent - Buy): $${formatNumber(diff)}<br><br>
 
-                If you invested the monthly difference, you'd have: <strong>$${formatNumber(futureStockValue)}</strong><br>
-                ${breakevenYear ? `<strong>Breakeven:</strong> After ${breakevenYear} years, buying becomes cheaper.` : `<strong>No breakeven in ${years} years</strong>`}
+                If you invested the monthly difference, you'd have: $${formatNumber(futureStockValue)}
             `;
         }
 
@@ -276,6 +268,7 @@
 
 </body>
 </html>
+
 
 
 
