@@ -103,12 +103,27 @@
             text-align: center;
             margin-top: 15px;
         }
+        .small-note {
+            font-size: 12px;
+            color: #555;
+            margin-top: 5px;
+            margin-bottom: 10px;
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
     <h2>Rent vs Buy Calculator</h2>
+
+    <!-- NEW Investment Return Input -->
+    <div class="comparison-period">
+        <label><strong>Estimated Annual Investment Return (%):</strong></label>
+        <div class="small-note">
+            Enter the percentage return you believe you would earn if you invested the monthly difference between mortgage and rent.
+        </div>
+        <input type="number" id="investmentReturn" value="5" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 5px;" />
+    </div>
 
     <div class="comparison-period">
         <label><strong>Comparison Period (Years to Compare Buying vs Renting):</strong></label>
@@ -183,6 +198,7 @@
         const propertyTaxesDollar = getValue('propertyTaxesDollar');
         const insurance = getValue('insurance');
         const growthRate = getValue('growthRate') / 100;
+        const investmentReturn = getValue('investmentReturn') / 100;
         let monthlyRent = getValue('monthlyRent');
         const rentIncrease = getValue('rentIncrease') / 100;
         const years = getValue('years');
@@ -209,7 +225,7 @@
         for (let i = 0; i < years; i++) {
             totalRentCost += monthlyRent * 12;
             homeWorthNow *= (1 + growthRate);
-            const investmentGrowth = downPayment * Math.pow(1 + 0.05, i + 1); // Assume 5% annual return on investment
+            const investmentGrowth = downPayment * Math.pow(1 + investmentReturn, i + 1);
 
             rentArray.push(totalRentCost.toFixed(2));
             homeWorthArray.push(homeWorthNow.toFixed(2));
@@ -221,16 +237,15 @@
 
         const homeValueIncrease = homeWorthNow - homePrice;
 
-        // Selling the Home
         const monthlyPrincipalAndInterest = monthlyPITI - monthlyTaxes - monthlyInsurance;
         const numberOfPaymentsMade = years * 12;
 
         const remainingLoanBalance = loanAmount * Math.pow(1 + interestRateMonthly, loanTermMonths) - (monthlyPrincipalAndInterest * (Math.pow(1 + interestRateMonthly, loanTermMonths) - Math.pow(1 + interestRateMonthly, numberOfPaymentsMade)) / interestRateMonthly);
 
-        const sellingCosts = homeWorthNow * 0.07; // Assuming 7% selling costs
+        const sellingCosts = homeWorthNow * 0.07;
         const moneyInPocketAfterSelling = homeWorthNow - remainingLoanBalance - sellingCosts;
 
-        const investmentGrowthFinal = downPayment * Math.pow(1 + 0.05, years); // Final investment growth
+        const investmentGrowthFinal = downPayment * Math.pow(1 + investmentReturn, years);
         const netRentLossAfterInvestment = totalRentCost - investmentGrowthFinal;
         const rentVsBuyDifference = moneyInPocketAfterSelling - netRentLossAfterInvestment;
 
@@ -284,29 +299,29 @@
             }
         });
 
-        // Display Results BELOW Graph (Formatted)
+        // Results
         document.getElementById('results').innerHTML = `
             <h3>Summary After ${years} Years:</h3>
 
-            <p><strong>Monthly Mortgage (incl. taxes & insurance):</strong> $${monthlyPITI.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
-            <p><strong>Monthly Rent (Year 1):</strong> $${(getValue('monthlyRent') || 1600).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
+            <p><strong>Monthly Mortgage (incl. taxes & insurance):</strong> $${monthlyPITI.toLocaleString(undefined, {minimumFractionDigits: 2})}</p>
+            <p><strong>Monthly Rent (Year 1):</strong> $${(getValue('monthlyRent') || 1600).toLocaleString(undefined, {minimumFractionDigits: 2})}</p>
 
             <hr>
 
-            <p><strong>Purchase Price:</strong> $${homePrice.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
-            <p><strong>Home Worth Now:</strong> $${homeWorthNow.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
-            <p><strong>Home Value Increase:</strong> $${homeValueIncrease.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
+            <p><strong>Purchase Price:</strong> $${homePrice.toLocaleString(undefined, {minimumFractionDigits: 2})}</p>
+            <p><strong>Home Worth Now:</strong> $${homeWorthNow.toLocaleString(undefined, {minimumFractionDigits: 2})}</p>
+            <p><strong>Home Value Increase:</strong> $${homeValueIncrease.toLocaleString(undefined, {minimumFractionDigits: 2})}</p>
 
             <hr>
 
-            <p><strong>Money in Pocket After Selling:</strong> $${moneyInPocketAfterSelling.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
-            <p><strong>Total Rent Loss:</strong> $${totalRentCost.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
+            <p><strong>Money in Pocket After Selling:</strong> $${moneyInPocketAfterSelling.toLocaleString(undefined, {minimumFractionDigits: 2})}</p>
+            <p><strong>Total Rent Loss:</strong> $${totalRentCost.toLocaleString(undefined, {minimumFractionDigits: 2})}</p>
 
-            <p><strong>Investment Growth:</strong> $${investmentGrowthFinal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
-            <p><strong>Net Rent Loss After Investment:</strong> $${netRentLossAfterInvestment.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
+            <p><strong>Investment Growth:</strong> $${investmentGrowthFinal.toLocaleString(undefined, {minimumFractionDigits: 2})}</p>
+            <p><strong>Net Rent Loss After Investment:</strong> $${netRentLossAfterInvestment.toLocaleString(undefined, {minimumFractionDigits: 2})}</p>
 
             <div class="highlight">
-                Difference (Rent - Buy): $${rentVsBuyDifference.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+                Difference (Rent - Buy): $${rentVsBuyDifference.toLocaleString(undefined, {minimumFractionDigits: 2})}
             </div>
         `;
     }
@@ -314,6 +329,7 @@
 
 </body>
 </html>
+
 
 
 
