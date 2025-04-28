@@ -25,6 +25,12 @@
             color: #2c3e50;
             margin-bottom: 30px;
         }
+        .comparison-period {
+            margin-bottom: 20px;
+            background: #eef3f7;
+            padding: 15px;
+            border-radius: 8px;
+        }
         .form-sections {
             display: flex;
             gap: 20px;
@@ -87,12 +93,27 @@
             margin: 8px 0;
             font-size: 15px;
         }
+        .highlight {
+            font-size: 18px;
+            font-weight: bold;
+            color: #2c3e50;
+            background: #eef3f7;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+            margin-top: 15px;
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
     <h2>Rent vs Buy Calculator</h2>
+
+    <div class="comparison-period">
+        <label><strong>Comparison Period (Years to Compare Buying vs Renting):</strong></label>
+        <input type="number" id="years" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 5px;" />
+    </div>
 
     <div class="form-sections">
         <!-- Buying Section -->
@@ -115,8 +136,8 @@
                 <input type="number" id="loanTerm" />
             </div>
             <div class="form-group">
-                <label>Property Taxes (% per year):</label>
-                <input type="number" id="propertyTaxes" />
+                <label>Property Taxes (annual $):</label>
+                <input type="number" id="propertyTaxesDollar" />
             </div>
             <div class="form-group">
                 <label>Annual Insurance Cost:</label>
@@ -139,10 +160,6 @@
                 <label>Annual Rent Increase (%):</label>
                 <input type="number" id="rentIncrease" />
             </div>
-            <div class="form-group">
-                <label>Number of Years:</label>
-                <input type="number" id="years" />
-            </div>
         </div>
     </div>
 
@@ -163,7 +180,7 @@
         const downPaymentPercent = getValue('downPayment');
         const interestRateMonthly = getValue('interestRate') / 100 / 12;
         const loanTermMonths = getValue('loanTerm') * 12;
-        const propertyTaxesPercent = getValue('propertyTaxes') / 100;
+        const propertyTaxesDollar = getValue('propertyTaxesDollar');
         const insurance = getValue('insurance');
         const growthRate = getValue('growthRate') / 100;
         let monthlyRent = getValue('monthlyRent');
@@ -177,7 +194,7 @@
 
         const downPayment = homePrice * (downPaymentPercent / 100);
         const loanAmount = homePrice - downPayment;
-        const monthlyTaxes = (homePrice * propertyTaxesPercent) / 12;
+        const monthlyTaxes = propertyTaxesDollar / 12;
         const monthlyInsurance = insurance / 12;
         const monthlyPITI = loanAmount * interestRateMonthly * Math.pow(1 + interestRateMonthly, loanTermMonths) / (Math.pow(1 + interestRateMonthly, loanTermMonths) - 1) + monthlyTaxes + monthlyInsurance;
 
@@ -270,26 +287,34 @@
         // Display Results BELOW Graph (Formatted)
         document.getElementById('results').innerHTML = `
             <h3>Summary After ${years} Years:</h3>
+
             <p><strong>Monthly Mortgage (incl. taxes & insurance):</strong> $${monthlyPITI.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
             <p><strong>Monthly Rent (Year 1):</strong> $${(getValue('monthlyRent') || 1600).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
 
-            <p><strong>Total Rent Cost Over ${years} Years:</strong> $${totalRentCost.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
+            <hr>
+
             <p><strong>Purchase Price:</strong> $${homePrice.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
             <p><strong>Home Worth Now:</strong> $${homeWorthNow.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
             <p><strong>Home Value Increase:</strong> $${homeValueIncrease.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
 
+            <hr>
+
             <p><strong>Money in Pocket After Selling:</strong> $${moneyInPocketAfterSelling.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
             <p><strong>Total Rent Loss:</strong> $${totalRentCost.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
+
             <p><strong>Investment Growth:</strong> $${investmentGrowthFinal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
             <p><strong>Net Rent Loss After Investment:</strong> $${netRentLossAfterInvestment.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
 
-            <p><strong>Difference (Rent - Buy):</strong> $${rentVsBuyDifference.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
+            <div class="highlight">
+                Difference (Rent - Buy): $${rentVsBuyDifference.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+            </div>
         `;
     }
 </script>
 
 </body>
 </html>
+
 
 
 
