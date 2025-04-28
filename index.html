@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <title>Rent vs Buy Calculator</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
             padding: 20px;
             background-color: #f5f5f5;
-            max-width: 800px;
+            max-width: 900px;
             margin: auto;
         }
         h2, h3, h4 {
@@ -24,6 +25,9 @@
             border-radius: 8px;
             margin-top: 20px;
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        canvas {
+            margin-top: 20px;
         }
     </style>
 </head>
@@ -46,7 +50,11 @@
 
     <div class="results" id="results"></div>
 
+    <canvas id="myChart" width="400" height="200"></canvas>
+
     <script>
+        let chartInstance = null;
+
         function calculate() {
             const getValue = (id) => parseFloat(document.getElementById(id).value) || 0;
 
@@ -74,13 +82,25 @@
 
             // Rent Calculation
             let totalRentCost = 0;
+            let rentArray = [];
+            let yearsArray = [];
+            let homeWorthArray = [];
+            let investmentArray = [];
+            let homeWorthNow = homePrice;
+
             for (let i = 0; i < years; i++) {
                 totalRentCost += monthlyRent * 12;
+                homeWorthNow *= (1 + growthRate);
+                const investmentGrowth = downPayment * Math.pow(1 + 0.05, i + 1); // Assume 5% annual return on investment
+
+                rentArray.push(totalRentCost.toFixed(2));
+                homeWorthArray.push(homeWorthNow.toFixed(2));
+                investmentArray.push(investmentGrowth.toFixed(2));
+                yearsArray.push(i + 1);
+
                 monthlyRent *= (1 + rentIncrease);
             }
 
-            // Home Appreciation
-            const homeWorthNow = homePrice * Math.pow(1 + growthRate, years);
             const homeValueIncrease = homeWorthNow - homePrice;
 
             // Selling the Home
@@ -92,11 +112,8 @@
             const sellingCosts = homeWorthNow * 0.07; // Assuming 7% selling costs
             const moneyInPocketAfterSelling = homeWorthNow - remainingLoanBalance - sellingCosts;
 
-            // Investment Alternative (simplified compound interest on down payment)
-            const investmentGrowthRate = 0.05; // assume 5% annual return
-            const investmentGrowth = downPayment * Math.pow(1 + investmentGrowthRate, years);
-
-            const netRentLossAfterInvestment = totalRentCost - investmentGrowth;
+            const investmentGrowthFinal = downPayment * Math.pow(1 + 0.05, years); // Final investment growth
+            const netRentLossAfterInvestment = totalRentCost - investmentGrowthFinal;
             const rentVsBuyDifference = moneyInPocketAfterSelling - netRentLossAfterInvestment;
 
             // Display Results
@@ -116,16 +133,67 @@
 
                 <h4>🏠 Renting Summary:</h4>
                 <p><strong>Total Rent Paid (Lost):</strong> $${totalRentCost.toFixed(2)}</p>
-                <p><strong>If You Had Invested Instead:</strong> $${investmentGrowth.toFixed(2)}</p>
+                <p><strong>If You Had Invested Instead:</strong> $${investmentGrowthFinal.toFixed(2)}</p>
                 <p><strong>Net Rent Loss After Investment:</strong> $${netRentLossAfterInvestment.toFixed(2)}</p>
 
                 <h4>📈 Difference (Rent - Buy): $${rentVsBuyDifference.toFixed(2)}</h4>
             `;
+
+            // Chart
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+
+            const ctx = document.getElementById('myChart').getContext('2d');
+            chartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: yearsArray,
+                    datasets: [
+                        {
+                            label: 'Total Rent Paid',
+                            data: rentArray,
+                            borderColor: 'blue',
+                            fill: false
+                        },
+                        {
+                            label: 'Home Worth',
+                            data: homeWorthArray,
+                            borderColor: 'green',
+                            fill: false
+                        },
+                        {
+                            label: 'Investment Growth',
+                            data: investmentArray,
+                            borderColor: 'orange',
+                            fill: false
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top'
+                        },
+                        title: {
+                            display: true,
+                            text: 'Rent vs Buy Over Time'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: false
+                        }
+                    }
+                }
+            });
         }
     </script>
 
 </body>
 </html>
+
 
 
 
