@@ -6,18 +6,75 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f9f9f9;
+            margin: 0;
             padding: 20px;
-            background-color: #f5f5f5;
-            max-width: 900px;
-            margin: auto;
-        }
-        h2, h3, h4 {
             color: #333;
         }
-        label, input {
+        .container {
+            max-width: 1000px;
+            margin: auto;
+            background: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        h2 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+        }
+        .form-sections {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .form-section {
+            flex: 1;
+            min-width: 300px;
+            background: #f0f4f8;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+        .form-section h3 {
+            margin-top: 0;
+            color: #2c3e50;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 5px;
+            margin-bottom: 15px;
+        }
+        .form-group {
+            margin-bottom: 12px;
+        }
+        .form-group label {
             display: block;
-            margin: 8px 0;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            display: block;
+            margin: 20px auto;
+            padding: 10px 20px;
+            background: #3498db;
+            color: #fff;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #2980b9;
+        }
+        canvas {
+            margin-top: 40px;
         }
         .results {
             background-color: #fff;
@@ -26,169 +83,214 @@
             margin-top: 20px;
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
         }
-        canvas {
-            margin-top: 20px;
+        .results p {
+            margin: 8px 0;
+            font-size: 15px;
         }
     </style>
 </head>
 <body>
 
+<div class="container">
     <h2>Rent vs Buy Calculator</h2>
 
-    <label>Home Purchase Price: <input type="number" id="homePrice" /></label>
-    <label>Down Payment (%): <input type="number" id="downPayment" /></label>
-    <label>Loan Interest Rate (% per year): <input type="number" id="interestRate" /></label>
-    <label>Loan Term (years): <input type="number" id="loanTerm" /></label>
-    <label>Property Taxes (% per year): <input type="number" id="propertyTaxes" /></label>
-    <label>Annual Insurance Cost: <input type="number" id="insurance" /></label>
-    <label>Annual Home Appreciation (%): <input type="number" id="growthRate" /></label>
-    <label>Monthly Rent: <input type="number" id="monthlyRent" value="1600" /></label>
-    <label>Annual Rent Increase (%): <input type="number" id="rentIncrease" /></label>
-    <label>Number of Years: <input type="number" id="years" /></label>
+    <div class="form-sections">
+        <!-- Buying Section -->
+        <div class="form-section">
+            <h3>Buying Inputs</h3>
+            <div class="form-group">
+                <label>Home Purchase Price:</label>
+                <input type="number" id="homePrice" />
+            </div>
+            <div class="form-group">
+                <label>Down Payment (%):</label>
+                <input type="number" id="downPayment" />
+            </div>
+            <div class="form-group">
+                <label>Loan Interest Rate (% per year):</label>
+                <input type="number" id="interestRate" />
+            </div>
+            <div class="form-group">
+                <label>Loan Term (years):</label>
+                <input type="number" id="loanTerm" />
+            </div>
+            <div class="form-group">
+                <label>Property Taxes (% per year):</label>
+                <input type="number" id="propertyTaxes" />
+            </div>
+            <div class="form-group">
+                <label>Annual Insurance Cost:</label>
+                <input type="number" id="insurance" />
+            </div>
+            <div class="form-group">
+                <label>Annual Home Appreciation (%):</label>
+                <input type="number" id="growthRate" />
+            </div>
+        </div>
+
+        <!-- Renting Section -->
+        <div class="form-section">
+            <h3>Renting Inputs</h3>
+            <div class="form-group">
+                <label>Monthly Rent:</label>
+                <input type="number" id="monthlyRent" value="1600" />
+            </div>
+            <div class="form-group">
+                <label>Annual Rent Increase (%):</label>
+                <input type="number" id="rentIncrease" />
+            </div>
+            <div class="form-group">
+                <label>Number of Years:</label>
+                <input type="number" id="years" />
+            </div>
+        </div>
+    </div>
 
     <button onclick="calculate()">Calculate</button>
 
     <canvas id="myChart" width="400" height="200"></canvas>
 
     <div class="results" id="results"></div>
+</div>
 
-    <script>
-        let chartInstance = null;
+<script>
+    let chartInstance = null;
 
-        function calculate() {
-            const getValue = (id) => parseFloat(document.getElementById(id).value) || 0;
+    function calculate() {
+        const getValue = (id) => parseFloat(document.getElementById(id).value) || 0;
 
-            const homePrice = getValue('homePrice');
-            const downPaymentPercent = getValue('downPayment');
-            const interestRateMonthly = getValue('interestRate') / 100 / 12;
-            const loanTermMonths = getValue('loanTerm') * 12;
-            const propertyTaxesPercent = getValue('propertyTaxes') / 100;
-            const insurance = getValue('insurance');
-            const growthRate = getValue('growthRate') / 100;
-            let monthlyRent = getValue('monthlyRent');
-            const rentIncrease = getValue('rentIncrease') / 100;
-            const years = getValue('years');
+        const homePrice = getValue('homePrice');
+        const downPaymentPercent = getValue('downPayment');
+        const interestRateMonthly = getValue('interestRate') / 100 / 12;
+        const loanTermMonths = getValue('loanTerm') * 12;
+        const propertyTaxesPercent = getValue('propertyTaxes') / 100;
+        const insurance = getValue('insurance');
+        const growthRate = getValue('growthRate') / 100;
+        let monthlyRent = getValue('monthlyRent');
+        const rentIncrease = getValue('rentIncrease') / 100;
+        const years = getValue('years');
 
-            if (!homePrice || !loanTermMonths || !years) {
-                document.getElementById('results').innerHTML = "<strong>Please fill in all values to calculate.</strong>";
-                return;
-            }
+        if (!homePrice || !loanTermMonths || !years) {
+            document.getElementById('results').innerHTML = "<strong>Please fill in all values to calculate.</strong>";
+            return;
+        }
 
-            const downPayment = homePrice * (downPaymentPercent / 100);
-            const loanAmount = homePrice - downPayment;
-            const monthlyTaxes = (homePrice * propertyTaxesPercent) / 12;
-            const monthlyInsurance = insurance / 12;
-            const monthlyPITI = loanAmount * interestRateMonthly * Math.pow(1 + interestRateMonthly, loanTermMonths) / (Math.pow(1 + interestRateMonthly, loanTermMonths) - 1) + monthlyTaxes + monthlyInsurance;
+        const downPayment = homePrice * (downPaymentPercent / 100);
+        const loanAmount = homePrice - downPayment;
+        const monthlyTaxes = (homePrice * propertyTaxesPercent) / 12;
+        const monthlyInsurance = insurance / 12;
+        const monthlyPITI = loanAmount * interestRateMonthly * Math.pow(1 + interestRateMonthly, loanTermMonths) / (Math.pow(1 + interestRateMonthly, loanTermMonths) - 1) + monthlyTaxes + monthlyInsurance;
 
-            // Rent Calculation
-            let totalRentCost = 0;
-            let rentArray = [];
-            let yearsArray = [];
-            let homeWorthArray = [];
-            let investmentArray = [];
-            let homeWorthNow = homePrice;
+        // Rent Calculation
+        let totalRentCost = 0;
+        let rentArray = [];
+        let yearsArray = [];
+        let homeWorthArray = [];
+        let investmentArray = [];
+        let homeWorthNow = homePrice;
 
-            for (let i = 0; i < years; i++) {
-                totalRentCost += monthlyRent * 12;
-                homeWorthNow *= (1 + growthRate);
-                const investmentGrowth = downPayment * Math.pow(1 + 0.05, i + 1); // Assume 5% annual return on investment
+        for (let i = 0; i < years; i++) {
+            totalRentCost += monthlyRent * 12;
+            homeWorthNow *= (1 + growthRate);
+            const investmentGrowth = downPayment * Math.pow(1 + 0.05, i + 1); // Assume 5% annual return on investment
 
-                rentArray.push(totalRentCost.toFixed(2));
-                homeWorthArray.push(homeWorthNow.toFixed(2));
-                investmentArray.push(investmentGrowth.toFixed(2));
-                yearsArray.push(i + 1);
+            rentArray.push(totalRentCost.toFixed(2));
+            homeWorthArray.push(homeWorthNow.toFixed(2));
+            investmentArray.push(investmentGrowth.toFixed(2));
+            yearsArray.push(i + 1);
 
-                monthlyRent *= (1 + rentIncrease);
-            }
+            monthlyRent *= (1 + rentIncrease);
+        }
 
-            const homeValueIncrease = homeWorthNow - homePrice;
+        const homeValueIncrease = homeWorthNow - homePrice;
 
-            // Selling the Home
-            const monthlyPrincipalAndInterest = monthlyPITI - monthlyTaxes - monthlyInsurance;
-            const numberOfPaymentsMade = years * 12;
+        // Selling the Home
+        const monthlyPrincipalAndInterest = monthlyPITI - monthlyTaxes - monthlyInsurance;
+        const numberOfPaymentsMade = years * 12;
 
-            const remainingLoanBalance = loanAmount * Math.pow(1 + interestRateMonthly, loanTermMonths) - (monthlyPrincipalAndInterest * (Math.pow(1 + interestRateMonthly, loanTermMonths) - Math.pow(1 + interestRateMonthly, numberOfPaymentsMade)) / interestRateMonthly);
+        const remainingLoanBalance = loanAmount * Math.pow(1 + interestRateMonthly, loanTermMonths) - (monthlyPrincipalAndInterest * (Math.pow(1 + interestRateMonthly, loanTermMonths) - Math.pow(1 + interestRateMonthly, numberOfPaymentsMade)) / interestRateMonthly);
 
-            const sellingCosts = homeWorthNow * 0.07; // Assuming 7% selling costs
-            const moneyInPocketAfterSelling = homeWorthNow - remainingLoanBalance - sellingCosts;
+        const sellingCosts = homeWorthNow * 0.07; // Assuming 7% selling costs
+        const moneyInPocketAfterSelling = homeWorthNow - remainingLoanBalance - sellingCosts;
 
-            const investmentGrowthFinal = downPayment * Math.pow(1 + 0.05, years); // Final investment growth
-            const netRentLossAfterInvestment = totalRentCost - investmentGrowthFinal;
-            const rentVsBuyDifference = moneyInPocketAfterSelling - netRentLossAfterInvestment;
+        const investmentGrowthFinal = downPayment * Math.pow(1 + 0.05, years); // Final investment growth
+        const netRentLossAfterInvestment = totalRentCost - investmentGrowthFinal;
+        const rentVsBuyDifference = moneyInPocketAfterSelling - netRentLossAfterInvestment;
 
-            // Chart
-            if (chartInstance) {
-                chartInstance.destroy();
-            }
+        // Chart
+        if (chartInstance) {
+            chartInstance.destroy();
+        }
 
-            const ctx = document.getElementById('myChart').getContext('2d');
-            chartInstance = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: yearsArray,
-                    datasets: [
-                        {
-                            label: 'Total Rent Paid',
-                            data: rentArray,
-                            borderColor: 'blue',
-                            fill: false
-                        },
-                        {
-                            label: 'Home Worth',
-                            data: homeWorthArray,
-                            borderColor: 'green',
-                            fill: false
-                        },
-                        {
-                            label: 'Investment Growth',
-                            data: investmentArray,
-                            borderColor: 'orange',
-                            fill: false
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: {
-                            position: 'top'
-                        },
-                        title: {
-                            display: true,
-                            text: 'Rent vs Buy Over Time'
-                        }
+        const ctx = document.getElementById('myChart').getContext('2d');
+        chartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: yearsArray,
+                datasets: [
+                    {
+                        label: 'Total Rent Paid',
+                        data: rentArray,
+                        borderColor: 'blue',
+                        fill: false
                     },
-                    scales: {
-                        y: {
-                            beginAtZero: false
-                        }
+                    {
+                        label: 'Home Worth',
+                        data: homeWorthArray,
+                        borderColor: 'green',
+                        fill: false
+                    },
+                    {
+                        label: 'Investment Growth',
+                        data: investmentArray,
+                        borderColor: 'orange',
+                        fill: false
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top'
+                    },
+                    title: {
+                        display: true,
+                        text: 'Rent vs Buy Over Time'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: false
                     }
                 }
-            });
+            }
+        });
 
-            // Display Results BELOW Graph
-            document.getElementById('results').innerHTML = `
-                <h3>Summary After ${years} Years:</h3>
-                <p><strong>Monthly Mortgage (incl. taxes & insurance):</strong> $${monthlyPITI.toFixed(2)}</p>
-                <p><strong>Monthly Rent:</strong> $1,600</p>
+        // Display Results BELOW Graph (Formatted)
+        document.getElementById('results').innerHTML = `
+            <h3>Summary After ${years} Years:</h3>
+            <p><strong>Monthly Mortgage (incl. taxes & insurance):</strong> $${monthlyPITI.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
+            <p><strong>Monthly Rent (Year 1):</strong> $${(getValue('monthlyRent') || 1600).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
 
-                <p><strong>Total Rent Cost Over ${years} Years:</strong> $${totalRentCost.toFixed(2)}</p>
-                <p><strong>Purchase Price:</strong> $${homePrice.toFixed(2)}</p>
-                <p><strong>Home Worth Now:</strong> $${homeWorthNow.toFixed(2)}</p>
-                <p><strong>Home Value Increase:</strong> $${homeValueIncrease.toFixed(2)}</p>
+            <p><strong>Total Rent Cost Over ${years} Years:</strong> $${totalRentCost.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
+            <p><strong>Purchase Price:</strong> $${homePrice.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
+            <p><strong>Home Worth Now:</strong> $${homeWorthNow.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
+            <p><strong>Home Value Increase:</strong> $${homeValueIncrease.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
 
-                <p><strong>Money in Pocket After Selling:</strong> $${moneyInPocketAfterSelling.toFixed(2)}</p>
-                <p><strong>Total Rent Loss:</strong> $${totalRentCost.toFixed(2)}</p>
-                <p><strong>Investment Growth:</strong> $${investmentGrowthFinal.toFixed(2)}</p>
-                <p><strong>Net Rent Loss After Investment:</strong> $${netRentLossAfterInvestment.toFixed(2)}</p>
+            <p><strong>Money in Pocket After Selling:</strong> $${moneyInPocketAfterSelling.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
+            <p><strong>Total Rent Loss:</strong> $${totalRentCost.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
+            <p><strong>Investment Growth:</strong> $${investmentGrowthFinal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
+            <p><strong>Net Rent Loss After Investment:</strong> $${netRentLossAfterInvestment.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
 
-                <p><strong>Difference (Rent - Buy):</strong> $${rentVsBuyDifference.toFixed(2)}</p>
-            `;
-        }
-    </script>
+            <p><strong>Difference (Rent - Buy):</strong> $${rentVsBuyDifference.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
+        `;
+    }
+</script>
 
 </body>
 </html>
+
 
 
 
