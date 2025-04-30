@@ -154,15 +154,23 @@ function calculate() {
     let totalRentCost = 0;
     let rentArray = [], yearsArray = [], homeWorthArray = [], investmentArray = [];
     let homeWorthNow = homePrice;
+    let futureInvestment = 0;
 
     for (let i = 0; i < years; i++) {
         totalRentCost += monthlyRent * 12;
         homeWorthNow *= (1 + growthRate);
-        const investmentGrowth = downPayment * Math.pow(1 + investmentReturn, i + 1);
+
+        // Simulate monthly investment of rent savings (if any)
+        let monthlyDifference = monthlyPITI - (monthlyRent / Math.pow(1 + rentIncrease, i)); // approximate base rent
+        for (let m = 0; m < 12; m++) {
+            if (monthlyDifference > 0) {
+                futureInvestment = (futureInvestment + monthlyDifference) * (1 + Math.pow(1 + investmentReturn, 1 / 12) - 1);
+            }
+        }
 
         rentArray.push(totalRentCost.toFixed(2));
         homeWorthArray.push(homeWorthNow.toFixed(2));
-        investmentArray.push(investmentGrowth.toFixed(2));
+        investmentArray.push(futureInvestment.toFixed(2));
         yearsArray.push(i + 1);
 
         monthlyRent *= (1 + rentIncrease);
@@ -177,8 +185,7 @@ function calculate() {
     const sellingCosts = homeWorthNow * 0.07;
     const moneyInPocketAfterSelling = homeWorthNow - remainingLoanBalance - sellingCosts;
 
-    const investmentGrowthFinal = downPayment * Math.pow(1 + investmentReturn, years);
-    const netRentLossAfterInvestment = totalRentCost - investmentGrowthFinal;
+    const netRentLossAfterInvestment = totalRentCost - futureInvestment;
     const rentVsBuyDifference = moneyInPocketAfterSelling - netRentLossAfterInvestment;
 
     if (chartInstance) chartInstance.destroy();
@@ -189,7 +196,7 @@ function calculate() {
             labels: yearsArray,
             datasets: [
                 { label: 'Total Rent Paid', data: rentArray, borderColor: 'blue', fill: false },
-                { label: 'Home Worth', data: homeWorthArray, borderColor: 'green', fill: false },
+                { label: 'Estimated Home Value', data: homeWorthArray, borderColor: 'green', fill: false },
                 { label: 'Investment Growth', data: investmentArray, borderColor: 'orange', fill: false }
             ]
         },
@@ -209,13 +216,13 @@ function calculate() {
         <p><strong>Monthly Rent (Year 1):</strong> $${(getValue('monthlyRent') || 1600).toLocaleString(undefined, {minimumFractionDigits: 2})}</p>
         <hr>
         <p><strong>Purchase Price:</strong> $${homePrice.toLocaleString(undefined, {minimumFractionDigits: 2})}</p>
-        <strong>Estimated Home Value After ${years} Years:</strong> $${formatNumber(homeValue)}<br>
-
+        <p><strong>Estimated Home Value After ${years} Years:</strong> $${homeWorthNow.toLocaleString(undefined, {minimumFractionDigits: 2})}</p>
         <p><strong>Home Value Increase:</strong> $${homeValueIncrease.toLocaleString(undefined, {minimumFractionDigits: 2})}</p>
         <hr>
-        <p><strong>Money in Pocket After Selling:</strong> $${moneyInPocketAfterSelling.toLocaleString(undefined, {minimumFractionDigits: 2})}</p>
-        <p><strong>Total Rent Loss:</strong> $${totalRentCost.toLocaleString(undefined, {minimumFractionDigits: 2})}</p>
-        <p><strong>Investment Growth:</strong> $${investmentGrowthFinal.toLocaleString(undefined, {minimumFractionDigits: 2})}</p>
+        <p><strong>Net Proceeds from Sale (Estimated):</strong> $${moneyInPocketAfterSelling.toLocaleString(undefined, {minimumFractionDigits: 2})}</p>
+        <p><small><em>*This is the estimated amount you'd walk away with after paying off your mortgage and typical selling costs (7%).</em></small></p>
+        <p><strong>Total Rent Paid:</strong> $${totalRentCost.toLocaleString(undefined, {minimumFractionDigits: 2})}</p>
+        <p><strong>Investment Growth:</strong> $${futureInvestment.toLocaleString(undefined, {minimumFractionDigits: 2})}</p>
         <p><strong>Net Rent Loss After Investment:</strong> $${netRentLossAfterInvestment.toLocaleString(undefined, {minimumFractionDigits: 2})}</p>
         <div class="highlight">Difference (Rent - Buy): $${rentVsBuyDifference.toLocaleString(undefined, {minimumFractionDigits: 2})}</div>
     `;
