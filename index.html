@@ -160,8 +160,7 @@ function calculate() {
         totalRentCost += monthlyRent * 12;
         homeWorthNow *= (1 + growthRate);
 
-        // Simulate monthly investment of rent savings (if any)
-        let monthlyDifference = monthlyPITI - (monthlyRent / Math.pow(1 + rentIncrease, i)); // approximate base rent
+        let monthlyDifference = monthlyPITI - (monthlyRent / Math.pow(1 + rentIncrease, i));
         for (let m = 0; m < 12; m++) {
             if (monthlyDifference > 0) {
                 futureInvestment = (futureInvestment + monthlyDifference) * (1 + Math.pow(1 + investmentReturn, 1 / 12) - 1);
@@ -180,11 +179,11 @@ function calculate() {
     const monthlyPrincipalAndInterest = monthlyPITI - monthlyTaxes - monthlyInsurance;
     const numberOfPaymentsMade = years * 12;
 
-    const remainingLoanBalance = loanAmount * Math.pow(1 + interestRateMonthly, loanTermMonths) - (monthlyPrincipalAndInterest * (Math.pow(1 + interestRateMonthly, loanTermMonths) - Math.pow(1 + interestRateMonthly, numberOfPaymentsMade)) / interestRateMonthly);
+    const remainingLoanBalance = loanAmount * Math.pow(1 + interestRateMonthly, loanTermMonths) - 
+        (monthlyPrincipalAndInterest * (Math.pow(1 + interestRateMonthly, loanTermMonths) - Math.pow(1 + interestRateMonthly, numberOfPaymentsMade)) / interestRateMonthly);
 
     const sellingCosts = homeWorthNow * 0.07;
     const moneyInPocketAfterSelling = homeWorthNow - remainingLoanBalance - sellingCosts;
-
     const netRentLossAfterInvestment = totalRentCost - futureInvestment;
     const rentVsBuyDifference = moneyInPocketAfterSelling - netRentLossAfterInvestment;
 
@@ -220,14 +219,15 @@ function calculate() {
         <p><strong>Home Value Increase:</strong> $${homeValueIncrease.toLocaleString(undefined, {minimumFractionDigits: 2})}</p>
         <hr>
         <p><strong>Net Proceeds from Sale (Estimated):</strong> $${moneyInPocketAfterSelling.toLocaleString(undefined, {minimumFractionDigits: 2})}</p>
-        <p><small><em>*This is the estimated amount you'd walk away with after paying off your mortgage and typical selling costs (7%).</em></small></p>
+        <p><small><em>*Projected cash after selling the home, paying off the loan balance and estimated 7% selling costs.</em></small></p>
         <p><strong>Total Rent Paid:</strong> $${totalRentCost.toLocaleString(undefined, {minimumFractionDigits: 2})}</p>
-        <p><strong>Investment Growth:</strong> $${futureInvestment.toLocaleString(undefined, {minimumFractionDigits: 2})}</p>
+        <p><strong>Investment Growth (if difference invested monthly):</strong> $${futureInvestment.toLocaleString(undefined, {minimumFractionDigits: 2})}</p>
         <p><strong>Net Rent Loss After Investment:</strong> $${netRentLossAfterInvestment.toLocaleString(undefined, {minimumFractionDigits: 2})}</p>
         <div class="highlight">Difference (Rent - Buy): $${rentVsBuyDifference.toLocaleString(undefined, {minimumFractionDigits: 2})}</div>
     `;
 }
 </script>
+
 
 </body>
 </html>
