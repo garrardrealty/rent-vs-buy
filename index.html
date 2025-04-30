@@ -209,7 +209,8 @@ function calculate() {
         <p><strong>Monthly Rent (Year 1):</strong> $${(getValue('monthlyRent') || 1600).toLocaleString(undefined, {minimumFractionDigits: 2})}</p>
         <hr>
         <p><strong>Purchase Price:</strong> $${homePrice.toLocaleString(undefined, {minimumFractionDigits: 2})}</p>
-        <p><strong>Home Worth Now:</strong> $${homeWorthNow.toLocaleString(undefined, {minimumFractionDigits: 2})}</p>
+        <strong>Estimated Home Value After ${years} Years:</strong> $${formatNumber(homeValue)}<br>
+
         <p><strong>Home Value Increase:</strong> $${homeValueIncrease.toLocaleString(undefined, {minimumFractionDigits: 2})}</p>
         <hr>
         <p><strong>Money in Pocket After Selling:</strong> $${moneyInPocketAfterSelling.toLocaleString(undefined, {minimumFractionDigits: 2})}</p>
