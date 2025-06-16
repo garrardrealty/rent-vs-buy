@@ -5,233 +5,133 @@
     <title>Rent vs Buy Calculator</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /* [Same CSS styling you had — skipped here to save space] */
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; margin: 0; padding: 20px; color: #333; }
-        .container { max-width: 1000px; margin: auto; background: #fff; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); }
-        h2 { text-align: center; color: #2c3e50; margin-bottom: 30px; }
-        .comparison-period { margin-bottom: 20px; background: #eef3f7; padding: 15px; border-radius: 8px; }
-        .form-sections { display: flex; gap: 20px; flex-wrap: wrap; }
-        .form-section { flex: 1; min-width: 300px; background: #f0f4f8; padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05); }
-        .form-section h3 { margin-top: 0; color: #2c3e50; border-bottom: 1px solid #ccc; padding-bottom: 5px; margin-bottom: 15px; }
-        .sub-section { margin-top: 20px; padding-top: 15px; border-top: 1px solid #ccc; }
-        .sub-section h4 { margin: 10px 0 5px; font-size: 16px; color: #2c3e50; }
-        .small-note { font-size: 12px; color: #555; margin-bottom: 10px; }
-        .form-group { margin-bottom: 12px; }
-        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
-        .form-group input { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 5px; }
-        button { display: block; margin: 20px auto; padding: 10px 20px; background: #3498db; color: #fff; font-size: 16px; border: none; border-radius: 5px; cursor: pointer; }
-        button:hover { background: #2980b9; }
-        canvas { margin-top: 40px; }
-        .results { background-color: #fff; padding: 20px; border-radius: 8px; margin-top: 20px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-        .results p { margin: 8px 0; font-size: 15px; }
-        .highlight { font-size: 18px; font-weight: bold; color: #2c3e50; background: #eef3f7; padding: 10px; border-radius: 5px; text-align: center; margin-top: 15px; }
+        body { font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 20px; }
+        .container { max-width: 900px; margin: auto; background: #fff; padding: 30px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        h2 { text-align: center; color: #333; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; }
+        input { width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc; }
+        button { background-color: #007BFF; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; margin-top: 10px; }
+        button:hover { background-color: #0056b3; }
+        #results { margin-top: 30px; background: #eef; padding: 20px; border-radius: 10px; }
+        .highlight { font-weight: bold; font-size: 18px; margin-top: 10px; }
+        canvas { margin-top: 30px; }
     </style>
 </head>
-
 <body>
-
 <div class="container">
     <h2>Rent vs Buy Calculator</h2>
 
-   <div class="comparison-period">
-    <label><strong>Comparison Period (Years to Compare Buying vs Renting):</strong></label>
-    <div class="small-note">(This is the number of years you expect to own the home or rent before moving or selling.)</div>
-    <input type="number" id="years" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 5px;" />
-</div>
+    <div class="form-group">
+        <label>Comparison Period (Years):</label>
+        <input type="number" id="years" value="5">
+    </div>
+    <h3>Buying Information</h3>
+    <div class="form-group">
+        <label>Home Price ($):</label>
+        <input type="number" id="homePrice">
+    </div>
+    <div class="form-group">
+        <label>Down Payment (%):</label>
+        <input type="number" id="downPayment">
+    </div>
+    <div class="form-group">
+        <label>Interest Rate (%):</label>
+        <input type="number" id="interestRate">
+    </div>
+    <div class="form-group">
+        <label>Loan Term (Years):</label>
+        <input type="number" id="loanTerm">
+    </div>
+    <div class="form-group">
+        <label>Annual Taxes ($):</label>
+        <input type="number" id="taxes">
+    </div>
+    <div class="form-group">
+        <label>Annual Insurance ($):</label>
+        <input type="number" id="insurance">
+    </div>
+    <div class="form-group">
+        <label>Annual Home Appreciation (%):</label>
+        <input type="number" id="appreciation">
+    </div>
 
-
-    <div class="form-sections">
-        <!-- Buying Section -->
-        <div class="form-section">
-            <h3>Buying Inputs</h3>
-            <div class="form-group">
-    <label>Home Purchase Price:</label>
-    <div class="small-note">(To get a more accurate result using this calculator, speak with a lender about what home price you may qualify for.)</div>
-    <input type="number" id="homePrice" />
-</div>
-
-            <div class="form-group">
-    <label>Down Payment (%):</label>
-    <div class="small-note">(Typical: FHA 3.5%, Conventional 3–5%)</div>
-    <input type="number" id="downPayment" />
-</div>
-
-           <div class="form-group">
-    <label>Loan Interest Rate (% per year):</label>
-    <div class="small-note">(For a more accurate rate, please consult a lender.)</div>
-    <input type="number" id="interestRate" />
-</div>
-
-           <div class="form-group">
-    <label>Loan Term (years):</label>
-    <div class="small-note">(Typical loan terms are 15 or 30 years.)</div>
-    <input type="number" id="loanTerm" />
-</div>
-            <div class="form-group">
-    <label>Property Taxes (annual $):</label>
-    <div class="small-note">(Check your county's tax estimator for a more accurate amount.)</div>
-    <input type="number" id="propertyTaxesDollar" />
-</div>
-            <div class="form-group">
-    <label>Annual Insurance Cost:</label>
-    <div class="small-note">(For a more accurate rate, please consult an insurance representative.)</div>
-    <input type="number" id="insurance" />
-</div>
-         <div class="form-group">
-    <label>Annual Home Appreciation (%):</label>
-    <div class="small-note">(The national average home appreciation is typically between 2–4% annually.)</div>
-    <input type="number" id="growthRate" />
-</div>
-        </div>
-
-
-        <!-- Renting Section -->
-        <div class="form-section">
-            <h3>Renting Inputs</h3>
-            <div class="form-group">
-    <label>Monthly Rent:</label>
-    <div class="small-note">(Tip: Compare rent prices to homes similar in size, location, and style to what you plan to buy.)</div>
-    <input type="number" id="monthlyRent" value="1600" />
-</div>
-            <div class="form-group">
-    <label>Annual Rent Increase (%):</label>
-    <div class="small-note">(National average annual rent increases typically range between 3–5%.)</div>
-    <input type="number" id="rentIncrease" />
-</div>
-
-            <div class="sub-section">
-                <h4>Investment Assumption</h4>
-                
-<div class="form-group">
-    <label>Estimated Annual Investment Return (%):</label>
-    <div class="small-note">(Historically, investments like the stock market have returned around 6–10% per year, but returns are never guaranteed.)</div>
-    <input type="number" id="investmentReturn" value="5" />
-</div>
-
-
-                    
-                </div>
-            </div>
-        </div>
+    <h3>Renting Information</h3>
+    <div class="form-group">
+        <label>Monthly Rent ($):</label>
+        <input type="number" id="monthlyRent">
+    </div>
+    <div class="form-group">
+        <label>Annual Rent Increase (%):</label>
+        <input type="number" id="rentIncrease">
     </div>
 
     <button onclick="calculate()">Calculate</button>
 
-    <canvas id="myChart" width="400" height="200"></canvas>
-
-    <div class="results" id="results"></div>
+    <canvas id="chart" width="400" height="200"></canvas>
+    <div id="results"></div>
 </div>
 
 <script>
-let chartInstance = null;
+let chartInstance;
 
 function calculate() {
-    const getValue = (id) => parseFloat(document.getElementById(id).value) || 0;
+    const years = parseFloat(document.getElementById('years').value);
+    const homePrice = parseFloat(document.getElementById('homePrice').value);
+    const downPayment = parseFloat(document.getElementById('downPayment').value) / 100;
+    const interestRate = parseFloat(document.getElementById('interestRate').value) / 100 / 12;
+    const loanTerm = parseFloat(document.getElementById('loanTerm').value) * 12;
+    const taxes = parseFloat(document.getElementById('taxes').value) / 12;
+    const insurance = parseFloat(document.getElementById('insurance').value) / 12;
+    const appreciation = parseFloat(document.getElementById('appreciation').value) / 100;
 
-    const homePrice = getValue('homePrice');
-    const downPaymentPercent = getValue('downPayment');
-    const interestRateMonthly = getValue('interestRate') / 100 / 12;
-    const loanTermMonths = getValue('loanTerm') * 12;
-    const propertyTaxesDollar = getValue('propertyTaxesDollar');
-    const insurance = getValue('insurance');
-    const growthRate = getValue('growthRate') / 100;
-    const investmentReturn = getValue('investmentReturn') / 100;
-    let monthlyRent = getValue('monthlyRent');
-    const rentIncrease = getValue('rentIncrease') / 100;
-    const years = getValue('years');
+    const monthlyRent = parseFloat(document.getElementById('monthlyRent').value);
+    const rentIncrease = parseFloat(document.getElementById('rentIncrease').value) / 100;
 
-    if (!homePrice || !loanTermMonths || !years) {
-        document.getElementById('results').innerHTML = "<strong>Please fill in all values to calculate.</strong>";
-        return;
-    }
+    const loanAmount = homePrice - (homePrice * downPayment);
+    const monthlyPayment = loanAmount * interestRate * Math.pow(1 + interestRate, loanTerm) / (Math.pow(1 + interestRate, loanTerm) - 1);
+    const monthlyHousingCost = monthlyPayment + taxes + insurance;
 
-    const downPayment = homePrice * (downPaymentPercent / 100);
-    const loanAmount = homePrice - downPayment;
-    const monthlyTaxes = propertyTaxesDollar / 12;
-    const monthlyInsurance = insurance / 12;
-    const monthlyPITI = loanAmount * interestRateMonthly * Math.pow(1 + interestRateMonthly, loanTermMonths) / (Math.pow(1 + interestRateMonthly, loanTermMonths) - 1) + monthlyTaxes + monthlyInsurance;
-
-    let totalRentCost = 0;
-    let rentArray = [], yearsArray = [], homeWorthArray = [], investmentArray = [];
-    let homeWorthNow = homePrice;
-    let futureInvestment = 0;
+    let rentCosts = 0;
+    let currentRent = monthlyRent;
+    let homeValue = homePrice;
+    let rentSeries = [], buySeries = [], yearLabels = [];
 
     for (let i = 0; i < years; i++) {
-        totalRentCost += monthlyRent * 12;
-        homeWorthNow *= (1 + growthRate);
-
-        let monthlyDifference = monthlyPITI - (monthlyRent / Math.pow(1 + rentIncrease, i));
-        for (let m = 0; m < 12; m++) {
-            if (monthlyDifference > 0) {
-                futureInvestment = (futureInvestment + monthlyDifference) * (1 + Math.pow(1 + investmentReturn, 1 / 12) - 1);
-            }
-        }
-
-        rentArray.push(totalRentCost.toFixed(2));
-        homeWorthArray.push(homeWorthNow.toFixed(2));
-        investmentArray.push(futureInvestment.toFixed(2));
-        yearsArray.push(i + 1);
-
-        monthlyRent *= (1 + rentIncrease);
+        rentCosts += currentRent * 12;
+        buySeries.push(monthlyHousingCost * 12 * (i + 1));
+        rentSeries.push(rentCosts);
+        yearLabels.push(`Year ${i + 1}`);
+        currentRent *= (1 + rentIncrease);
+        homeValue *= (1 + appreciation);
     }
 
-    const homeValueIncrease = homeWorthNow - homePrice;
-    const monthlyPrincipalAndInterest = monthlyPITI - monthlyTaxes - monthlyInsurance;
-    const numberOfPaymentsMade = years * 12;
-
-    const remainingLoanBalance = loanAmount * Math.pow(1 + interestRateMonthly, loanTermMonths) - 
-        (monthlyPrincipalAndInterest * (Math.pow(1 + interestRateMonthly, loanTermMonths) - Math.pow(1 + interestRateMonthly, numberOfPaymentsMade)) / interestRateMonthly);
-
-    const sellingCosts = homeWorthNow * 0.07;
-    const moneyInPocketAfterSelling = homeWorthNow - remainingLoanBalance - sellingCosts;
-    const netRentLossAfterInvestment = totalRentCost - futureInvestment;
-    const rentVsBuyDifference = moneyInPocketAfterSelling - netRentLossAfterInvestment;
+    const finalHomeValue = homeValue;
+    const breakEvenYear = rentSeries.findIndex((rent, i) => rent > buySeries[i]) + 1;
 
     if (chartInstance) chartInstance.destroy();
-    const ctx = document.getElementById('myChart').getContext('2d');
+    const ctx = document.getElementById('chart').getContext('2d');
     chartInstance = new Chart(ctx, {
         type: 'line',
         data: {
-            labels: yearsArray,
+            labels: yearLabels,
             datasets: [
-                { label: 'Total Rent Paid', data: rentArray, borderColor: 'blue', fill: false },
-                { label: 'Estimated Home Value', data: homeWorthArray, borderColor: 'green', fill: false },
-                { label: 'Investment Growth', data: investmentArray, borderColor: 'orange', fill: false }
+                { label: 'Total Rent Paid', data: rentSeries, borderColor: 'red', fill: false },
+                { label: 'Cumulative Buying Cost', data: buySeries, borderColor: 'green', fill: false }
             ]
         },
-        options: {
-            responsive: true,
-            plugins: {
-                legend: { position: 'top' },
-                title: { display: true, text: 'Rent vs Buy Over Time' }
-            },
-            scales: { y: { beginAtZero: false } }
-        }
+        options: { responsive: true, plugins: { title: { display: true, text: 'Rent vs Buy Cost Over Time' } } }
     });
 
     document.getElementById('results').innerHTML = `
-        <h3>Summary After ${years} Years:</h3>
-        <p><strong>Monthly Mortgage (incl. taxes & insurance):</strong> $${monthlyPITI.toLocaleString(undefined, {minimumFractionDigits: 2})}</p>
-        <p><strong>Monthly Rent (Year 1):</strong> $${(getValue('monthlyRent') || 1600).toLocaleString(undefined, {minimumFractionDigits: 2})}</p>
-        <hr>
-        <p><strong>Purchase Price:</strong> $${homePrice.toLocaleString(undefined, {minimumFractionDigits: 2})}</p>
-        <p><strong>Estimated Home Value After ${years} Years:</strong> $${homeWorthNow.toLocaleString(undefined, {minimumFractionDigits: 2})}</p>
-        <p><strong>Home Value Increase:</strong> $${homeValueIncrease.toLocaleString(undefined, {minimumFractionDigits: 2})}</p>
-        <hr>
-        <p><strong>Net Proceeds from Sale (Estimated):</strong> $${moneyInPocketAfterSelling.toLocaleString(undefined, {minimumFractionDigits: 2})}</p>
-        <p><small><em>*Projected cash after selling the home, paying off the loan balance and estimated 7% selling costs.</em></small></p>
-        <p><strong>Total Rent Paid:</strong> $${totalRentCost.toLocaleString(undefined, {minimumFractionDigits: 2})}</p>
-        <p><strong>Investment Growth (if difference invested monthly):</strong> $${futureInvestment.toLocaleString(undefined, {minimumFractionDigits: 2})}</p>
-        <p><strong>Net Rent Loss After Investment:</strong> $${netRentLossAfterInvestment.toLocaleString(undefined, {minimumFractionDigits: 2})}</p>
-        <div class="highlight">Difference (Rent - Buy): $${rentVsBuyDifference.toLocaleString(undefined, {minimumFractionDigits: 2})}</div>
+        <div><strong>Estimated Home Value After ${years} Years:</strong> $${finalHomeValue.toFixed(2)}</div>
+        <div><strong>Total Rent Paid Over ${years} Years:</strong> $${rentCosts.toFixed(2)}</div>
+        <div class="highlight">${breakEvenYear ? `Buying becomes cheaper than renting around year ${breakEvenYear}.` : 'Renting remains less expensive for the full term.'}</div>
     `;
 }
 </script>
-
-
 </body>
 </html>
-
 
 
 
