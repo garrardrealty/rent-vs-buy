@@ -132,6 +132,11 @@ function calculate() {
 
     const equityGained = homeValue - loanAmount;
     const averageMonthlyDifference = differenceSeries.reduce((a, b) => a + b, 0) / (years * 12);
+    const rentLossWithInvestment = rentCosts - investmentValue;
+
+    function formatCurrency(value) {
+        return value.toLocaleString(undefined, { style: 'currency', currency: 'USD' });
+    }
 
     if (chartInstance) chartInstance.destroy();
     const ctx = document.getElementById('chart').getContext('2d');
@@ -149,20 +154,20 @@ function calculate() {
     });
 
     document.getElementById('results').innerHTML = `
-        <div><strong>Monthly Mortgage (PITI):</strong> $${monthlyHousingCost.toFixed(2)}</div>
-        <div><strong>Monthly Rent (Year 1):</strong> $${parseFloat(document.getElementById('monthlyRent').value).toFixed(2)}</div>
-        <div><strong>Average Monthly Difference (if mortgage is higher):</strong> $${averageMonthlyDifference.toFixed(2)}</div>
-        <div><strong>Estimated Home Value After ${years} Years:</strong> $${homeValue.toFixed(2)}</div>
-        <div><strong>Total Equity Gained:</strong> $${equityGained.toFixed(2)}</div>
-        <div><strong>Total Rent Paid Over ${years} Years:</strong> $${rentCosts.toFixed(2)}</div>
-        <div><strong>Investment Value from Saving Monthly Difference:</strong> $${investmentValue.toFixed(2)}</div>
+        <div><strong>Monthly Mortgage (PITI):</strong> ${formatCurrency(monthlyHousingCost)}</div>
+        <div><strong>Monthly Rent (Year 1):</strong> ${formatCurrency(parseFloat(document.getElementById('monthlyRent').value))}</div>
+        <div><strong>Average Monthly Difference (if mortgage is higher):</strong> ${formatCurrency(averageMonthlyDifference)}</div>
+        <div><strong>Estimated Home Value After ${years} Years:</strong> ${formatCurrency(homeValue)}</div>
+        <div><strong>Total Equity Gained:</strong> ${formatCurrency(equityGained)}</div>
+        <div><strong>Total Rent Paid Over ${years} Years:</strong> ${formatCurrency(rentCosts)}</div>
+        <div><strong>Investment Value from Saving Monthly Difference:</strong> ${formatCurrency(investmentValue)}</div>
+        <div><strong>Net Rent Loss After Investment:</strong> ${formatCurrency(rentLossWithInvestment)}</div>
         <div class="highlight">Use this comparison as a financial snapshot. It does not account for tax write-offs, inflation, or personal preferences.</div>
     `;
 }
 </script>
 </body>
 </html>
-
 
 
 
