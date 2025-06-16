@@ -66,6 +66,11 @@
         <input type="number" id="rentIncrease">
     </div>
 
+    <div class="form-group">
+        <label>Estimated Annual Investment Return (%):</label>
+        <input type="number" id="investmentReturn" value="5">
+    </div>
+
     <button onclick="calculate()">Calculate</button>
 
     <canvas id="chart" width="400" height="200"></canvas>
@@ -84,29 +89,35 @@ function calculate() {
     const taxes = parseFloat(document.getElementById('taxes').value) / 12;
     const insurance = parseFloat(document.getElementById('insurance').value) / 12;
     const appreciation = parseFloat(document.getElementById('appreciation').value) / 100;
+    const investmentReturn = parseFloat(document.getElementById('investmentReturn').value) / 100;
 
-    const monthlyRent = parseFloat(document.getElementById('monthlyRent').value);
+    let monthlyRent = parseFloat(document.getElementById('monthlyRent').value);
     const rentIncrease = parseFloat(document.getElementById('rentIncrease').value) / 100;
 
     const loanAmount = homePrice - (homePrice * downPayment);
     const monthlyPayment = loanAmount * interestRate * Math.pow(1 + interestRate, loanTerm) / (Math.pow(1 + interestRate, loanTerm) - 1);
     const monthlyHousingCost = monthlyPayment + taxes + insurance;
+    const downPaymentAmt = homePrice * downPayment;
 
     let rentCosts = 0;
     let currentRent = monthlyRent;
     let homeValue = homePrice;
-    let rentSeries = [], buySeries = [], yearLabels = [];
+    let rentSeries = [], buySeries = [], yearLabels = [], investmentSeries = [];
+    let investmentValue = 0;
 
     for (let i = 0; i < years; i++) {
         rentCosts += currentRent * 12;
+        let yearDiff = (currentRent - monthlyHousingCost) * 12;
+        if (yearDiff > 0) investmentValue += yearDiff * Math.pow(1 + investmentReturn, years - i);
+
         buySeries.push(monthlyHousingCost * 12 * (i + 1));
         rentSeries.push(rentCosts);
+        investmentSeries.push(investmentValue);
         yearLabels.push(`Year ${i + 1}`);
         currentRent *= (1 + rentIncrease);
         homeValue *= (1 + appreciation);
     }
 
-    const finalHomeValue = homeValue;
     const breakEvenYear = rentSeries.findIndex((rent, i) => rent > buySeries[i]) + 1;
 
     if (chartInstance) chartInstance.destroy();
@@ -117,22 +128,28 @@ function calculate() {
             labels: yearLabels,
             datasets: [
                 { label: 'Total Rent Paid', data: rentSeries, borderColor: 'red', fill: false },
-                { label: 'Cumulative Buying Cost', data: buySeries, borderColor: 'green', fill: false }
+                { label: 'Cumulative Buying Cost', data: buySeries, borderColor: 'green', fill: false },
+                { label: 'Investment Value (Saved Difference)', data: investmentSeries, borderColor: 'blue', fill: false }
             ]
         },
         options: { responsive: true, plugins: { title: { display: true, text: 'Rent vs Buy Cost Over Time' } } }
     });
 
+    const equityGained = homeValue - loanAmount;
+
     document.getElementById('results').innerHTML = `
-        <div><strong>Estimated Home Value After ${years} Years:</strong> $${finalHomeValue.toFixed(2)}</div>
+        <div><strong>Monthly Mortgage (PITI):</strong> $${monthlyHousingCost.toFixed(2)}</div>
+        <div><strong>Monthly Rent (Year 1):</strong> $${parseFloat(document.getElementById('monthlyRent').value).toFixed(2)}</div>
+        <div><strong>Estimated Home Value After ${years} Years:</strong> $${homeValue.toFixed(2)}</div>
+        <div><strong>Total Equity Gained:</strong> $${equityGained.toFixed(2)}</div>
         <div><strong>Total Rent Paid Over ${years} Years:</strong> $${rentCosts.toFixed(2)}</div>
+        <div><strong>Investment Value from Saving the Difference:</strong> $${investmentValue.toFixed(2)}</div>
         <div class="highlight">${breakEvenYear ? `Buying becomes cheaper than renting around year ${breakEvenYear}.` : 'Renting remains less expensive for the full term.'}</div>
     `;
 }
 </script>
 </body>
 </html>
-
 
 
 
