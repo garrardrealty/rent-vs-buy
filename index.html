@@ -111,17 +111,20 @@ function calculate() {
         let annualBuyCost = monthlyHousingCost * 12;
         rentCosts += annualRent;
 
-        const monthlyDifference = currentRent - monthlyHousingCost;
+        let totalInvestedThisYear = 0;
+
         for (let m = 0; m < 12; m++) {
+            const monthlyDifference = currentRent - monthlyHousingCost;
             if (monthlyDifference > 0) {
                 investmentValue = (investmentValue + monthlyDifference) * (1 + investmentReturn / 12);
+                totalInvestedThisYear += monthlyDifference;
             }
         }
 
         rentSeries.push(rentCosts);
         buySeries.push(annualBuyCost * (i + 1));
         investmentSeries.push(investmentValue);
-        differenceSeries.push(monthlyDifference * 12);
+        differenceSeries.push(totalInvestedThisYear);
         yearLabels.push(`Year ${i + 1}`);
 
         currentRent *= (1 + rentIncrease);
@@ -130,6 +133,7 @@ function calculate() {
 
     const breakEvenYear = rentSeries.findIndex((rent, i) => rent > buySeries[i]) + 1;
     const equityGained = homeValue - loanAmount;
+    const averageMonthlyDifference = differenceSeries.reduce((a, b) => a + b, 0) / (years * 12);
 
     if (chartInstance) chartInstance.destroy();
     const ctx = document.getElementById('chart').getContext('2d');
@@ -149,18 +153,17 @@ function calculate() {
     document.getElementById('results').innerHTML = `
         <div><strong>Monthly Mortgage (PITI):</strong> $${monthlyHousingCost.toFixed(2)}</div>
         <div><strong>Monthly Rent (Year 1):</strong> $${parseFloat(document.getElementById('monthlyRent').value).toFixed(2)}</div>
-        <div><strong>Average Monthly Difference (Rent - Mortgage):</strong> $${(differenceSeries.reduce((a, b) => a + b, 0) / years / 12).toFixed(2)}</div>
+        <div><strong>Average Monthly Difference (if rent is higher):</strong> $${averageMonthlyDifference.toFixed(2)}</div>
         <div><strong>Estimated Home Value After ${years} Years:</strong> $${homeValue.toFixed(2)}</div>
         <div><strong>Total Equity Gained:</strong> $${equityGained.toFixed(2)}</div>
         <div><strong>Total Rent Paid Over ${years} Years:</strong> $${rentCosts.toFixed(2)}</div>
         <div><strong>Investment Value from Saving Monthly Difference:</strong> $${investmentValue.toFixed(2)}</div>
-        <div class="highlight">${breakEvenYear ? `Buying becomes cheaper than renting around year ${breakEvenYear}.` : 'Renting remains less expensive for the full term.'}</div>
+        <div class="highlight">Use this comparison as a financial snapshot. It does not account for tax write-offs, inflation, or personal preferences.</div>
     `;
 }
 </script>
 </body>
 </html>
-
 
 
 
